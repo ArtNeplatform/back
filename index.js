@@ -21,7 +21,7 @@ app.use(cors({
   // MySQL 연결 테스트 API
   
   app.get('/', (req, res) => {
-    res.send('Welcome to the Artne Server!');
+    res.send('Welcome to the Artne Server!!');
   });
   
   app.get('/api/test', async (req, res) => {
