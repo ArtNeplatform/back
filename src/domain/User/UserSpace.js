@@ -1,15 +1,18 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../config/database');
-const User = require('./User');
+import { DataTypes } from 'sequelize';
+import User from './User.js';
 
-const UserSpace = sequelize.define('UserSpace', {
-  id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
-  user_id: { type: DataTypes.BIGINT, references: { model: User, key: 'id' } },
-  name: { type: DataTypes.STRING },
-  image_url: { type: DataTypes.STRING },
-  area: { type: DataTypes.STRING },
-});
+const UserSpace = (sequelize) => {
+  return sequelize.define('UserSpace', {
+    id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
+    user_id: { type: DataTypes.BIGINT, references: { model: User(sequelize), key: 'id' } },
+    name: { type: DataTypes.STRING },
+    image_url: { type: DataTypes.STRING },
+    area: { type: DataTypes.STRING },
+  });
+};
 
-UserSpace.belongsTo(User, { foreignKey: 'user_id' });
+UserSpace.associate = (models) => {
+  UserSpace.belongsTo(models.User, { foreignKey: 'user_id' });
+};
 
-module.exports = UserSpace;
+export default UserSpace;
