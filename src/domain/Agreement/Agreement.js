@@ -1,15 +1,36 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../../config/database');
-const User = require('./User');
+import { DataTypes } from 'sequelize';
 
-const Agreement = sequelize.define('Agreement', {
-  id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
-  user_id: { type: DataTypes.BIGINT, references: { model: User, key: 'id' } },
-  email_status: { type: DataTypes.BOOLEAN },
-  sms_status: { type: DataTypes.BOOLEAN },
-  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-});
+const Agreement = (sequelize) => {
+  return sequelize.define('Agreement', {
+    id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
+    user_or_author_id: { 
+      type: DataTypes.BIGINT, 
+      allowNull: false,
+    },
+    role: { 
+      type: DataTypes.ENUM('BUYER', 'AUTHOR'), 
+      allowNull: false 
+    },
+    email_status: { type: DataTypes.BOOLEAN },
+    sms_status: { type: DataTypes.BOOLEAN },
+    created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+  });
+};
 
-Agreement.belongsTo(User, { foreignKey: 'user_id' });
+Agreement.associate = (models) => {
+  Agreement.belongsTo(models.User, { 
+    foreignKey: 'user_or_author_id', 
+    targetKey: 'id',
+    constraints: false, 
+    scope: { role: 'BUYER' },
+  });
 
-module.exports = Agreement;
+  Agreement.belongsTo(models.Author, { 
+    foreignKey: 'user_or_author_id', 
+    targetKey: 'id',
+    constraints: false, 
+    scope: { role: 'AUTHOR' },
+  });
+};
+
+export default Agreement;
