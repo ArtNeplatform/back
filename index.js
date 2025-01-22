@@ -2,7 +2,7 @@
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './config/swagger-output.json' assert { type: 'json' };
 import express from 'express';
-import postsRoutes from 'ㅁ';
+import postsRoutes from 'express';
 import pool from './config/database.js'; // MySQL 연결
 import { response } from './config/response.js'; 
 import { status } from './config/response.status.js';
