@@ -26,8 +26,8 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 });
 
 const models = [
-  User, UserSpace, Agreement, Artwork, ArtworkCategory, ArtworkImage, 
-  Auction, AuctionBid, Author, Exhibition, FavoriteArtwork, FavoriteExhibition, Payment
+  User, UserSpace, Agreement, Author, Artwork, ArtworkCategory, ArtworkImage, 
+  Auction, AuctionBid, Exhibition, FavoriteArtwork, FavoriteExhibition, Payment
 ];
 
 const registerModels = () => models.forEach(model => sequelize.models[model.name] = model(sequelize));
