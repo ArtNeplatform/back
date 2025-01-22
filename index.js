@@ -2,7 +2,7 @@
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './config/swagger-output.json' assert { type: 'json' };
 import express from 'express';
-import postsRoutes from 'express';
+import postsRoutes from 'ㅁ';
 import pool from './config/database.js'; // MySQL 연결
 import { response } from './config/response.js'; 
 import { status } from './config/response.status.js';
@@ -21,7 +21,7 @@ app.use(cors({
   // MySQL 연결 테스트 API
   
   app.get('/', (req, res) => {
-    res.send('Welcome to the Artne Server!');
+    res.send('Welcome to the Artne Serve!!');
   });
   
   app.get('/api/test', async (req, res) => {
