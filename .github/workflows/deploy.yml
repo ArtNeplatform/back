@@ -35,10 +35,7 @@ jobs:
         run: |
           pwd
           touch .env
-          echo PORT=${{ secrets.PORT }} >> .env
-          echo DATABASE_URL=${{ secrets.DATABASE_URL }} >> .env
-          echo JWT_SECRET=${{ secrets.JWT_SECRET }} >> .env
-          echo JWT_ALGO=${{ secrets.JWT_ALGO }} >> .env
+          echo ENV=${{ secrets.ENV }} >> .env
           cat .env
 
       - name: build server files
@@ -50,7 +47,7 @@ jobs:
 ###################################### 추가된 부분 ######################################
 
       - name: zip file
-        run: zip -r artne.zip ./scripts ./appspec.yml ./.env ./package.json index.js ./config ./src # ./dist 삭제
+        run: zip -r artne.zip ./scripts ./appspec.yml ./.env ./package.json index.js ./config ./src 
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
