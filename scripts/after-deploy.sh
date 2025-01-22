@@ -18,4 +18,4 @@ yarn || { echo "Yarn 설치 또는 실행에 실패했습니다."; exit 1; }
 # pm2 실행
 # pm2 start dist || { echo "PM2 실행에 실패했습니다."; exit 1; }
 
-pm2 start index.js
+pm2 restart index.js
