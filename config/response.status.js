@@ -33,4 +33,9 @@ export const status = {
     TOKEN_VERIFICATION_FAILURE : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4006", "message": "jwt token 인증 실패" },
     USER_NOT_EXIST : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4007", "message": "유저를 찾을 수 없습니다" },
 
+    // upload error
+    UPLOAD_MULTER_ERROR: { status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "UPLOAD4001", "message": "파일 업로드 중 Multer 오류가 발생했습니다." }, 
+    UPLOAD_ERROR: { status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "UPLOAD4002", "message": "파일 업로드 중 오류가 발생했습니다." },
+    UPLOAD_FILE_TOO_LARGE: {status: StatusCodes.BAD_REQUEST,"isSuccess": false,"code": "UPLOAD4003","message": "파일 크기가 너무 큽니다. 최대 허용 크기는 10MB입니다"},
+
 }
