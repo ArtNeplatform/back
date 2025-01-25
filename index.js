@@ -34,6 +34,14 @@ app.use(cors({
     }
 });
 
+app.use((err, req, res, next) => {
+  // Multer 에러나 다른 에러 처리 시 JSON 응답
+  return res.status(400).json({
+      message: err.message || 'Unknown error occurred',
+      code: err.code || 'UPLOAD_ERROR',
+  });
+});
+
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
