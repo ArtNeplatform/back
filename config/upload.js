@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import { BaseError } from './error.js';
 
 // 파일 저장 위치를 메모리로 설정
 const storage = multer.memoryStorage();
@@ -10,17 +11,21 @@ const fileFilter = (req, file, cb) => {
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
 
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
+  if (!mimetype || !extname) {
+    return cb(new BaseError({
+        message: 'Only image files are allowed!',
+        code: 'BAD_REQUEST',  
+    }), false);  // Multer가 파일 업로드를 거부
   }
+  cb(null, true);  // 검증 성공
+
 };
 
 // multer 설정
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 export default upload;
