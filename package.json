@@ -7,13 +7,15 @@
   "scripts": {
     "start": "node index.js",
     "build": "echo 'No build step required for JS'",
-    "test": "echo 'Running tests...'"
+    "test": "echo 'Running tests...'",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1692.0",
+    "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
