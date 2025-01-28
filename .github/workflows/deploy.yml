@@ -29,28 +29,25 @@ jobs:
       - name: Check Npm -v
         run: npm -v
 
-      - name: Check ENV secret
-        run: |
-          if [[ -z "${{ secrets.ENV }}" ]]; then
-            echo "ERROR: secrets.ENV is empty!"
-            exit 1
-          fi
-          echo "secrets.ENV is set."
-
 
       - name: create env file
         working-directory: ./
         run: |
           pwd
           touch .env
-          echo ENV=${{ secrets.ENV }} >> .env
+          echo ENV=${{ secrets.ENV }} > .env
           cat .env
 
-      - name: Verify .env file
+      - name: Verify .env file size
         run: |
-          pwd
-          ls -al
-          cat .env
+          if [ ! -s .env ]; then
+            echo ".env file is empty or does not exist."
+            exit 1
+          else
+            echo ".env file created successfully:"
+            cat .env
+          fi
+
 
       - name: build server files
         working-directory: ./
