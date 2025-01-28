@@ -39,21 +39,21 @@ jobs:
           fi
         
 
-      # - name: create env file
-      #   working-directory: ./
-      #   run: |
-      #     pwd
-      #     touch .env
-      #     echo ENV=${{ secrets.ENV }} > .env
-      #     cat .env
-          
       - name: create env file
         working-directory: ./
         run: |
           pwd
           touch .env
-          echo "ENV=test_value" > .env
+          echo ENV=${{ secrets.ENV }} > .env
           cat .env
+          
+      # - name: create env file
+      #   working-directory: ./
+      #   run: |
+      #     pwd
+      #     touch .env
+      #     echo "ENV=test_value" > .env
+      #     cat .env
 
       - name: Verify .env file size
         run: |
@@ -63,7 +63,7 @@ jobs:
           else
             echo ".env file created successfully:"
             cat .env
-          fi
+          fi    
 
 
       - name: build server files
