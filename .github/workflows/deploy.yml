@@ -37,6 +37,11 @@ jobs:
           echo ENV=${{ secrets.ENV }} >> .env
           cat .env
 
+      - name: Verify .env file
+        run: |
+          ls -al
+          cat .env
+
       - name: build server files
         working-directory: ./
         run: |
