@@ -11,6 +11,8 @@ permissions:
     group: ubuntu
 hooks:
   AfterInstall:
+    - location: "chmod +x scripts/after-deploy.sh"
+      runas: ubuntu
     - location: scripts/after-deploy.sh
       timeout: 300
       runas: ubuntu
