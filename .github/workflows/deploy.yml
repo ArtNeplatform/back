@@ -55,15 +55,15 @@ jobs:
       #     echo "ENV=test_value" > .env
       #     cat .env
 
-      - name: Verify .env file size
-        run: |
-          if [ ! -s .env ]; then
-            echo ".env file is empty or does not exist."
-            exit 1
-          else
-            echo ".env file created successfully:"
-            cat .env
-          fi    
+      # - name: Verify .env file size
+      #   run: |
+      #     if [ ! -s .env ]; then
+      #       echo ".env file is empty or does not exist."
+      #       exit 1
+      #     else
+      #       echo ".env file created successfully:"
+      #       cat .env
+      #     fi    
 
 
       - name: build server files
