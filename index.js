@@ -3,11 +3,13 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './config/swagger-output.json' assert { type: 'json' };
 import express from 'express';
 import postsRoutes from 'express';
-import pool from './config/database.js'; // MySQL 연결
+import pool from './src/domain/sequelize.js'; // MySQL 연결
 import { response } from './config/response.js'; 
 import { status } from './config/response.status.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { verifyToken } from './middlewares/authMiddleware.js';
+import authRoutes from './src/domain/Authentication/authRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,34 +25,18 @@ app.use(cors({
   app.get('/', (req, res) => {
     res.send('Welcome to the Artne Server!');
   });
-  
-  app.get('/api/test', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT 1 + 1 AS solution');
-        res.status(status.SUCCESS.status).json(response(status.SUCCESS, { solution: rows[0].solution }));
-    } catch (error) {
-        console.error(error);
-        res.status(status.INTERNAL_SERVER_ERROR.status).json(response(status.INTERNAL_SERVER_ERROR, null));
-    }
-});
 
+  app.use('/auth', authRoutes);
+
+  // 인증 필요 route 정의 예시
+  // 실제로는 route 파일로 분리하여 사용
+  app.get('/ping', verifyToken, (req, res) => {
+    res.send('Pong!');
+  });
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
-
-
-// function handleListening (){
-//     console.log(`Listening on: http://localhost:${PORT}`);
-// }
-
-// function handleHome(req, res){
-//     res.send("hello");
-// }
-
-// app.get("/", handleHome);
-
-// app.listen(PORT, handleListening);
 
 // swagger
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerFile));
