@@ -35,7 +35,7 @@ jobs:
             echo "ERROR: secrets.ENV is empty!"
             exit 1
           else
-            echo "secrets.ENV is set but value is hidden for security reasons."
+            echo "secrets.ENV is set but value is hidden for security reasons.."
           fi
         
 
