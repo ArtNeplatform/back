@@ -49,7 +49,7 @@ jobs:
 ###################################### 추가된 부분 ######################################
 
       - name: zip file
-        run: zip -r artne.zip ./scripts ./appspec.yml ./.env ./package.json index.js ./config ./src 
+        run: zip -r artne.zip ./scripts ./appspec.yml ./.env ./package.json index.js ./config ./src ./middlewares
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
