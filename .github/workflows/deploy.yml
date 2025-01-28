@@ -30,12 +30,20 @@ jobs:
         run: npm -v
 
 
+      # - name: create env file
+      #   working-directory: ./
+      #   run: |
+      #     pwd
+      #     touch .env
+      #     echo ENV=${{ secrets.ENV }} > .env
+      #     cat .env
+          
       - name: create env file
         working-directory: ./
         run: |
           pwd
           touch .env
-          echo ENV=${{ secrets.ENV }} > .env
+          echo "ENV=test_value" > .env
           cat .env
 
       - name: Verify .env file size
