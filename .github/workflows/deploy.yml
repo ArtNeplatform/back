@@ -39,6 +39,7 @@ jobs:
 
       - name: Verify .env file
         run: |
+          pwd
           ls -al
           cat .env
 
