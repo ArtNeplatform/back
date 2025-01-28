@@ -35,7 +35,6 @@ jobs:
           pwd
           touch .env
           echo ENV=${{ secrets.ENV }} >> .env
-          echo ENV=${{ secrets.ENV }} >> /home/ubuntu/build/.env 
           cat .env
 
       - name: build server files
@@ -45,8 +44,7 @@ jobs:
           yarn
           yarn run build
           
-          
-      
+        
           
 ###################################### 추가된 부분 ######################################
 
