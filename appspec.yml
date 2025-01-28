@@ -9,13 +9,8 @@ permissions:
     pattern: '**'
     owner: ubuntu
     group: ubuntu
-    filemode: "755"
 hooks:
   AfterInstall:
-    - location: "chmod +x /home/ubuntu/build/scripts/after-deploy.sh"
-      runas: ubuntu
-    - location: "echo ENV=${{ secrets.ENV }} > /home/ubuntu/build/.env"  
-      runas: ubuntu
-    - location: "/home/ubuntu/build/scripts/after-deploy.sh"
+    - location: scripts/after-deploy.sh
       timeout: 300
       runas: ubuntu
