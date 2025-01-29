@@ -79,6 +79,9 @@ jobs:
 
       - name: zip file
         run: zip -r artne.zip ./scripts ./appspec.yml ./.env ./package.json index.js ./config ./src ./middlewares
+        
+      - name: Verify zip file contents
+        run: |
              unzip -l artne.zip 
              unzip -p artne.zip .env
 
