@@ -15,8 +15,8 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const KAKAO_CLIENT_ID = process.env.KAKAO_CLIENT_ID;
 
-const KAKAO_OAUTH_REDIRECT_URI = 'http://localhost:3000/auth/oauth/kakao/redirect';
-const GOOGLE_OAUTH_REDIRECT_URI = 'http://localhost:3000/auth/oauth/google/redirect';
+const KAKAO_OAUTH_REDIRECT_URI = (process.env.SERVER_URI || 'http://localhost:5000') + '/auth/oauth/kakao/redirect';
+const GOOGLE_OAUTH_REDIRECT_URI = (process.env.SERVER_URI || 'http://localhost:5000') + '/auth/oauth/google/redirect';
 
 const KAKAO_TOKEN_URL = 'https://kauth.kakao.com/oauth/token';
 const KAKAO_USERINFO_URL = 'https://kapi.kakao.com/v2/user/me';
