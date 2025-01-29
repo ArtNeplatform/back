@@ -14,6 +14,8 @@ const Author = (sequelize) => {
     education: { type: DataTypes.TEXT },
     award: { type: DataTypes.TEXT },
     experience: { type: DataTypes.TEXT },
+    description: { type: DataTypes.TEXT },
+    work_style: { type: DataTypes.TEXT },
     bank_name: { type: DataTypes.STRING },
     account_holder: { type: DataTypes.STRING },
     account_number: { type: DataTypes.STRING },

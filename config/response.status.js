@@ -37,5 +37,8 @@ export const status = {
     UPLOAD_MULTER_ERROR: { status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "UPLOAD4001", "message": "파일 업로드 중 Multer 오류가 발생했습니다." }, 
     UPLOAD_ERROR: { status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "UPLOAD4002", "message": "파일 업로드 중 오류가 발생했습니다." },
     UPLOAD_FILE_TOO_LARGE: {status: StatusCodes.BAD_REQUEST,"isSuccess": false,"code": "UPLOAD4003","message": "파일 크기가 너무 큽니다. 최대 허용 크기는 10MB입니다"},
+    UPLOAD_TOO_MANY_FILES: {status: StatusCodes.BAD_REQUEST,"isSuccess": false,"code": "UPLOAD4004","message": "최대 10개 파일 업로드 가능합니다."},
+    UPLOAD_NO_FILE: {status: StatusCodes.BAD_REQUEST,"isSuccess": false,"code": "UPLOAD4004","message": "업로드된 파일이 없습니다."},
+    UPLOAD_INVALID_FILE_TYPE: {status: StatusCodes.BAD_REQUEST,"isSuccess": false,"code": "UPLOAD4004","message": "업로드된 파일 형식이 잘못되었습니다다."},
 
 }
