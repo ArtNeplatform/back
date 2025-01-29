@@ -44,15 +44,22 @@ jobs:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           SERVER_ADDRESS: ${{ secrets.EC2_PUBLIC_IP }}
         run: |
-          echo "$PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          ssh -T -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$SERVER_ADDRESS << 'EOF'
-            docker pull hysong4u/artne:latest
-            existing_container_id=$(sudo docker ps -q --filter "publish=5000")
-            if [ -n "$existing_container_id" ]; then
-              sudo docker stop $existing_container_id
-              sudo docker rm $existing_container_id
-            fi
-            sudo docker image prune -f
-            docker run -d -p 5000:5000 hysong4u/artne:latest
-          EOF
+                  echo "$PRIVATE_KEY" > private_key.pem
+                  chmod 600 private_key.pem
+                  ssh -T -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$SERVER_ADDRESS << 'EOF'
+                    # Grant necessary permissions for Docker
+                    sudo chmod 660 /var/run/docker.sock
+                    sudo usermod -aG docker $USER
+                    sudo usermod -aG docker ubuntu
+                    
+                    # Pull Docker image and deploy
+                    sudo docker pull hysong4u/artne:latest
+                    existing_container_id=$(sudo docker ps -q --filter "publish=5000")
+                    if [ -n "$existing_container_id" ]; then
+                      sudo docker stop $existing_container_id
+                      sudo docker rm $existing_container_id
+                    fi
+                    sudo docker image prune -f
+                    sudo docker run -d -p 5000:5000 hysong4u/artne:latest
+                  EOF
+        
