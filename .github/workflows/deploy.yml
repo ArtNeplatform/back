@@ -79,6 +79,8 @@ jobs:
 
       - name: zip file
         run: zip -r artne.zip ./scripts ./appspec.yml ./.env ./package.json index.js ./config ./src ./middlewares
+             unzip -l artne.zip 
+             unzip -p artne.zip .env
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
