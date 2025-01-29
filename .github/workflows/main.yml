@@ -1,0 +1,58 @@
+name: Deploy to EC2(Docker)
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build server files
+        run: npm run build
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo ENV=${{ secrets.ENV }} > .env
+          cat .env
+
+      - name: Docker login
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Docker build and push
+        run: |
+          docker build -t artne .
+          docker tag artne hysong4u/artne:latest
+          docker push hysong4u/artne:latest
+
+      - name: Deploy to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          SERVER_ADDRESS: ${{ secrets.EC2_PUBLIC_IP }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+          ssh -T -o StrictHostKeyChecking=no -i private_key.pem ubuntu@$SERVER_ADDRESS << 'EOF'
+            docker pull hysong4u/artne:latest
+            existing_container_id=$(sudo docker ps -q --filter "publish=5000")
+            if [ -n "$existing_container_id" ]; then
+              sudo docker stop $existing_container_id
+              sudo docker rm $existing_container_id
+            fi
+            sudo docker image prune -f
+            docker run -d -p 5000:5000 hysong4u/artne:latest
+          EOF
