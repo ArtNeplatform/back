@@ -10,7 +10,7 @@ export const updateBankInfo = async (req, res) => {
         const userId = req.user.userId;
    
         if (!bank_name || !account_holder || !account_number) {
-            return sendResponse(res, status.BANK_INFORMATION_NOT_PROVIDED);
+            return sendResponse(res, status.BANK_INFO_NOT_PROVIDED);
         }
 
         let author = await Author.findOne({ where: { user_id: userId } });
@@ -21,7 +21,7 @@ export const updateBankInfo = async (req, res) => {
             author = await Author.create({ user_id: userId, bank_name, account_holder, account_number });
         }
         
-        return sendResponse(res, status.SUCCESS, author);
+        return sendResponse(res, status.SUCCESS, author.bank_name, author.account_holder, author.account_holder);
     } catch (error) {
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
@@ -102,4 +102,33 @@ const parseTextToArray = (text) => {
 
         return line;
     });
+};
+
+//작가 프로필 정보 수정 API
+export const updateAuthorProfile = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const attribute = req.body.attribute;  
+        const value = req.body.value;          
+
+        const allowedAttributes = ['description', 'work_style', 'education', 'award', 'experience'];
+        if (!allowedAttributes.includes(attribute)) {
+            return sendResponse(res, status.INVALID_ATTRIBUTE, `Invalid attribute: ${attribute}`);
+        }
+
+        if (!value) {
+            return sendResponse(res, status.PROFILE_INFO_NOT_PROVIDED, `No data provided for ${attribute}`);
+        }
+
+        const author = await Author.findOne({ where: { user_id: userId } });
+        if (!author) {
+            return sendResponse(res, status.AUTHOR_NOT_FOUND);
+        }
+
+        await author.update({ [attribute]: value });
+
+        return sendResponse(res, status.SUCCESS, { [attribute]: value });
+    } catch (error) {
+        return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+    }
 };

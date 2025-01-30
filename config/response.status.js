@@ -25,7 +25,12 @@ export const status = {
     ARTICLE_NOT_FOUND: {status: StatusCodes.NOT_FOUND, "isSuccess": false, "code": "ARTICLE4001", "message": "게시글이 없습니다."},
 
      // author err
-    BANK_INFORMATION_NOT_PROVIDED: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4001", "message": "계좌 등록 정보가 없습니다."},
+    BANK_INFO_NOT_PROVIDED: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4001", "message": "계좌 등록 정보가 제공되지 않았습니다."},
+    AUTHOR_NOT_FOUND: {status: StatusCodes.NOT_FOUND, "isSuccess": false, "code": "AUTHOR4002", "message": "작가 정보가 없습니다."},
+    PROFILE_INFO_NOT_PROVIDED: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4003", "message": "프로필 등록 정보가 제공되지 않았습니다."},
+    INVALID_ATTRIBUTE: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4004", "message": "유효하지 않은 속성입니다."},
+
+
 
     // login err
     LOGIN_PARAM_NOT_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4001", "message": "ID 혹은 PW 값이 존재하지 않습니다."},
