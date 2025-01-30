@@ -10,6 +10,10 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { verifyToken } from './middlewares/authMiddleware.js';
 import authRoutes from './src/domain/Authentication/authRoutes.js';
+import './src/domain/sequelizeRelations.js'; // 관계 설정
+import userSpaceRoutes from './src/domain/User/userSpaceRoutes.js'; 
+import artworkRoutes from './src/domain/Artwork/artworkCreateRoutes.js';
+import artworkDetailRoutes from './src/domain/Artwork/artworkDetailRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,6 +37,10 @@ app.use(cors({
   app.get('/ping', verifyToken, (req, res) => {
     res.send('Pong!');
   });
+
+  app.use('/api', userSpaceRoutes); // 내 공간 등록
+  app.use('/api', artworkRoutes); // 작품 등록
+  app.use('/api', artworkDetailRoutes); // 작품 상세 조회
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
