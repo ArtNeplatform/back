@@ -32,7 +32,6 @@ app.use(cors({
   });
 
   app.use('/auth', authRoutes);
-  app.use('/author', verifyToken, authorRoutes);
 
   // 인증 필요 route 정의 예시
   // 실제로는 route 파일로 분리하여 사용
@@ -40,12 +39,13 @@ app.use(cors({
     res.send('Pong!');
   });
 
-  //임시토큰발급(삭제예정)
+  //테스트용 임시토큰발급(삭제예정)
   app.post('/temp-token/:userId',getTempTokenByUserId);
 
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
+  app.use('/api/author', authorRoutes); // 작가 계좌정보 등록
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
