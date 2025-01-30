@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateBankInfo,getAuthorInfo } from './authorController.js';
+import { updateBankInfo, getAuthorInfo } from './authorController.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
 
 const router = express.Router();

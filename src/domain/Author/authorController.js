@@ -28,7 +28,7 @@ export const updateBankInfo = async (req, res) => {
 };
 
 
-// 작가 정보 조회 API
+// 작가 프로필 정보 조회 API
 export const getAuthorInfo = async (req, res) => {
     try {
         const userId = req.user.userId;
