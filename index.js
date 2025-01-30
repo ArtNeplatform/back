@@ -45,7 +45,7 @@ app.use(cors({
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
-  app.use('/api/author', authorRoutes); // 작가 계좌정보 등록
+  app.use('/api/author', authorRoutes); // 작가
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
