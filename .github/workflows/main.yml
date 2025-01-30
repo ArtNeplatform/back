@@ -52,6 +52,7 @@ jobs:
                     sudo usermod -aG docker $USER
                     sudo usermod -aG docker ubuntu
                     
+                    pwd
                     # Pull Docker image and deploy
                     sudo docker pull hysong4u/artne:latest
                     existing_container_id=$(sudo docker ps -q --filter "publish=5000")
