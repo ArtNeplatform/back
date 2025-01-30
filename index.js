@@ -8,8 +8,9 @@ import { response } from './config/response.js';
 import { status } from './config/response.status.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { verifyToken } from './middlewares/authMiddleware.js';
+import { verifyToken,getTempTokenByUserId } from './middlewares/authMiddleware.js';
 import authRoutes from './src/domain/Authentication/authRoutes.js';
+import authorRoutes from './src/domain/Author/authorRoutes.js';
 import './src/domain/sequelizeRelations.js'; // 관계 설정
 import userSpaceRoutes from './src/domain/User/userSpaceRoutes.js'; 
 import artworkRoutes from './src/domain/Artwork/artworkCreateRoutes.js';
@@ -31,12 +32,16 @@ app.use(cors({
   });
 
   app.use('/auth', authRoutes);
+  app.use('/author', verifyToken, authorRoutes);
 
   // 인증 필요 route 정의 예시
   // 실제로는 route 파일로 분리하여 사용
   app.get('/ping', verifyToken, (req, res) => {
     res.send('Pong!');
   });
+
+  //임시토큰발급(삭제예정)
+  app.post('/temp-token/:userId',getTempTokenByUserId);
 
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
