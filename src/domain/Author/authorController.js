@@ -21,7 +21,7 @@ export const updateBankInfo = async (req, res) => {
             author = await Author.create({ user_id: userId, bank_name, account_holder, account_number });
         }
         
-        return sendResponse(res, status.SUCCESS, author.bank_name, author.account_holder, author.account_holder);
+        return sendResponse(res, status.SUCCESS, { bank_name, account_holder, account_number });
     } catch (error) {
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
