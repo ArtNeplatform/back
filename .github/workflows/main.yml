@@ -61,6 +61,6 @@ jobs:
                       sudo docker rm $existing_container_id
                     fi
                     sudo docker image prune -f
-                    sudo docker run -d -p 5000:5000 --env-file .env hysong4u/artne:latest
+                    docker run -d -p 5000:5000 \ --env-file /home/ubuntu/.env \ hysong4u/artne:latest
                   EOF
         
