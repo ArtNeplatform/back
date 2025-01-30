@@ -54,12 +54,12 @@ jobs:
                     
                     # Pull Docker image and deploy
                     sudo docker pull hysong4u/artne:latest
-                    existing_container_id=$(sudo docker ps -q --filter "publish=3000")
+                    existing_container_id=$(sudo docker ps -q --filter "publish=5000")
                     if [ -n "$existing_container_id" ]; then
                       sudo docker stop $existing_container_id
                       sudo docker rm $existing_container_id
                     fi
                     sudo docker image prune -f
-                    sudo docker run -d -p 3000:3000 hysong4u/artne:latest
+                    sudo docker run -d -p 5000:5000 hysong4u/artne:latest
                   EOF
         
