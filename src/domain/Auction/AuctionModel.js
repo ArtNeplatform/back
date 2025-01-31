@@ -1,7 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../sequelize.js';
 import Artwork from '../Artwork/ArtworkModel.js';
-import Auction from './AuctionbidModel.js';
 
 class Auction extends Model {}
 Auction.init(
@@ -20,14 +19,10 @@ Auction.init(
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
+    modelName: 'Auction',
     sequelize,
     timestamps: false,
   }
 );
-
-Auction.associate = (models) => {
-  Auction.belongsTo(models.User, { foreignKey: 'artwork_id', as: 'artwork' });
-  Auction.hasMany(models.User, { foreignKey: 'auction_id', as: 'bids' });
-};
 
 export default Auction;

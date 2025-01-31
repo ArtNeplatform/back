@@ -16,3 +16,5 @@ UserSpace.associate = (models) => {
 };
 
 export default UserSpace;
+
+

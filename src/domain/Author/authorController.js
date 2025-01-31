@@ -23,6 +23,7 @@ export const updateBankInfo = async (req, res) => {
         
         return sendResponse(res, status.SUCCESS, { bank_name, account_holder, account_number });
     } catch (error) {
+        console.error('updateBankInfo 에러:', error);
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
 };
@@ -74,6 +75,7 @@ export const getAuthorInfo = async (req, res) => {
 
         return sendResponse(res, status.SUCCESS, responseData);
     } catch (error) {
+        console.error('getAuthorInfo 에러:', error);
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
 };
@@ -129,6 +131,7 @@ export const updateAuthorProfile = async (req, res) => {
 
         return sendResponse(res, status.SUCCESS, { [attribute]: value });
     } catch (error) {
+        console.error('updateAuthorProfile 에러:', error);
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
 };

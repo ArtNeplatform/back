@@ -24,14 +24,10 @@ AuctionBid.init(
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
+    modelName: 'AuctionBid',
     sequelize,
     timestamps: false,
   }
 );
-
-Auction.associate = (models) => {
-  Auction.belongsTo(models.User, { foreignKey: 'auction_id', as: 'auction' });
-  Auction.belongsTo(models.User, { foreignKey: 'user_id', as: 'user' });
-};
 
 export default AuctionBid;

@@ -14,4 +14,5 @@ export const sendResponse = (res, statusObject, result = null) => {
         message: statusObject.message,
         result: result
     });
+
 };

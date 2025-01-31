@@ -1,5 +1,5 @@
 import express from 'express';
-import {getAvailableArtworks, getAuctionList, getAuctionDetail, createAuction } from './auctionController.js';
+import {getAvailableArtworks, getAuctionList, getAuctionDetail, registerAuction ,bidAuction } from './auctionController.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -20,8 +20,13 @@ router.get('/:auctionId', async (req, res) => {
 });
 
 // 경매 등록 API
-router.post('/', verifyToken, async (req, res) => {
-    await createAuction(req, res);
+router.post('/register', verifyToken, async (req, res) => {
+    await registerAuction(req, res);
+});
+
+// 경매 입찰 API
+router.post('/bid', verifyToken, async (req, res) => {
+    await bidAuction(req, res);
 });
 
 export default router;

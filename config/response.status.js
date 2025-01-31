@@ -30,7 +30,11 @@ export const status = {
     PROFILE_INFO_NOT_PROVIDED: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4003", "message": "프로필 등록 정보가 제공되지 않았습니다."},
     INVALID_ATTRIBUTE: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4004", "message": "유효하지 않은 속성입니다."},
 
+    // artwork err
+    ARTWORK_NOT_FOUND: {status: StatusCodes.NOT_FOUND, "isSuccess": false, "code": "ARTWORK4001", "message": "작품이 없습니다."},
 
+    // auction err
+    AUCTION_ALREADY_ONGOING: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4001', message: '이미 진행 중인 경매가 있습니다.' },
 
     // login err
     LOGIN_PARAM_NOT_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4001", "message": "ID 혹은 PW 값이 존재하지 않습니다."},
