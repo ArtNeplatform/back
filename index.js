@@ -11,6 +11,7 @@ import cors from 'cors';
 import { verifyToken,getTempTokenByUserId } from './middlewares/authMiddleware.js';
 import authRoutes from './src/domain/Authentication/authRoutes.js';
 import authorRoutes from './src/domain/Author/authorRoutes.js';
+import auctionrRoutes from './src/domain/Auction/auctionRoutes.js';
 import './src/domain/sequelizeRelations.js'; // 관계 설정
 import userSpaceRoutes from './src/domain/User/userSpaceRoutes.js'; 
 import artworkRoutes from './src/domain/Artwork/artworkCreateRoutes.js';
@@ -46,6 +47,7 @@ app.use(cors({
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
   app.use('/api/author', authorRoutes); // 작가
+  app.use('/api/auction', auctionrRoutes); // 경매
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
