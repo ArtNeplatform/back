@@ -3,6 +3,7 @@ import { status } from '../../../config/response.status.js';
 import Auction from './AuctionModel.js';
 import AuctionBid from './AuctionbidModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
+import ArtworkImage from '../Artwork/ArtworkImageModel.js';
 import Author from '../Author/AuthorModel.js';
 import { broadcastToClients } from '../../../config/webSocket.js'; 
 
@@ -244,4 +245,73 @@ export const getAuctionList = async (req, res) => {
   }
 };
 
+// 경매 상세 조회
+export const getAuctionDetail = async (req, res) => {
+  try {
+      const { auctionId } = req.params;
+      const auction = await Auction.findByPk(auctionId, {
+          attributes: ['start_time', 'start_price', 'current_price', 'final_price', 'end_time'],
+          include: {
+              model: Artwork,
+              as: 'artwork',
+              attributes: ['title', 'thumbnail_image_url', 'year', 'height', 'width', 'number', 'material', 'description'],
+              include: [
+                  {
+                      model: Author,
+                      as: 'author',
+                      attributes: ['id', 'author_name']
+                  },
+                  {
+                      model: ArtworkImage,
+                      as: 'images',
+                      attributes: ['image_url']
+                  }
+              ]
+          }
+      });
 
+      if (!auction) {
+          return sendResponse(res, status.AUCTION_NOT_FOUND);
+      }
+
+      const calculateRemainingTime = (endTime) => {
+          const diff = Math.max(0, new Date(endTime) - new Date());
+
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+          return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      };
+
+      const remainingTime = calculateRemainingTime(auction.end_time);
+
+
+      const auctionDetail = {
+        auction_id: auction.id,
+        start_price: auction.start_price,  
+        current_price: auction.current_price,
+        final_price: auction.final_price || auction.current_price,
+        remaining_time: remainingTime,
+        artwork: {
+            author_name: auction.artwork.author?.author_name,
+            title: auction.artwork.title,
+            year: auction.artwork.year,
+            material: auction.artwork.material,
+            height: auction.artwork.height,
+            width: auction.artwork.width,
+            size : auction.artwork.height + " x " + auction.artwork.width + "cm",
+            number: auction.artwork.number + "호",
+            description: auction.artwork.description,
+            thumbnail_image_url: auction.artwork.thumbnail_image_url,
+            images: auction.artwork.images.map(image => image.image_url)
+        }
+    };
+      broadcastToClients(status.SUCCESS, auctionDetail);
+      return sendResponse(res, status.SUCCESS, auctionDetail);
+  } catch (error) {
+      console.error('getAuctionDetail 에러:', error);
+      return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+  }
+};
