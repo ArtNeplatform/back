@@ -3,11 +3,14 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './config/swagger-output.json' assert { type: 'json' };
 import express from 'express';
 import postsRoutes from 'express';
+import http from 'http';
 import pool from './src/domain/sequelize.js'; // MySQL 연결
 import { response } from './config/response.js'; 
 import { status } from './config/response.status.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+
+import { initializeWebSocket } from './config/webSocket.js';
 import { verifyToken,getTempTokenByUserId } from './middlewares/authMiddleware.js';
 import authRoutes from './src/domain/Authentication/authRoutes.js';
 import authorRoutes from './src/domain/Author/authorRoutes.js';
@@ -49,10 +52,12 @@ app.use(cors({
   app.use('/api/author', authorRoutes); // 작가
   app.use('/api/auction', auctionrRoutes); // 경매
 
+  //웹소켓
+  initializeWebSocket(app);
+
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
-
 // swagger
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
