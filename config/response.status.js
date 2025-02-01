@@ -35,6 +35,13 @@ export const status = {
 
     // auction err
     AUCTION_ALREADY_ONGOING: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4001', message: '이미 진행 중인 경매가 있습니다.' },
+    INVALID_END_TIME: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4002', message: '잘못된 마감 시간 입니다.' },
+    AUCTION_ALREADY_COMPLETED: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4003', message: '이미 완료된 경매입니다..' },
+    AUCTION_NOT_FOUND: { status: StatusCodes.NOT_FOUND, isSuccess: false, code: 'AUCTION4004', message: '해당 경매가 없습니다.' },
+    BID_LOWER_THAN_CURRENT_PRICE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4005', message: '입찰가가 현재가보다 낮습니다.' },
+    BID_LOWER_THAN_START_PRICE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4006', message: '입찰가가 시작가보다 낮습니다.' },
+    CANNOT_BID_OWN_AUCTION:  { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4007', message: '경매 등록자는 입찰 할 수 없습니다.' },
+
 
     // login err
     LOGIN_PARAM_NOT_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4001", "message": "ID 혹은 PW 값이 존재하지 않습니다."},

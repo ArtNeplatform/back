@@ -9,6 +9,16 @@ router.get('/available-artwork', verifyToken, async (req, res) => {
     await getAvailableArtworks(req, res);
 });
 
+// 경매 입찰 API
+router.post('/bid', verifyToken, async (req, res) => {
+    await bidAuction(req, res);
+});
+
+// 경매 등록 API
+router.post('/register', verifyToken, async (req, res) => {
+    await registerAuction(req, res);
+});
+
 // 경매 리스트 조회 API
 router.get('/', async (req, res) => {
     await getAuctionList(req, res);
@@ -19,14 +29,7 @@ router.get('/:auctionId', async (req, res) => {
     await getAuctionDetail(req, res);
 });
 
-// 경매 등록 API
-router.post('/register', verifyToken, async (req, res) => {
-    await registerAuction(req, res);
-});
 
-// 경매 입찰 API
-router.post('/bid', verifyToken, async (req, res) => {
-    await bidAuction(req, res);
-});
+
 
 export default router;
