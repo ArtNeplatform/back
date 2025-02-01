@@ -104,7 +104,7 @@ export const bidAuction = async (req, res) => {
         const userId = req.user.userId;
 
         const bidData = (bid) => ({
-          id: bid.id,
+          bid_id: bid.id,
           auction_id: bid.auction_id,
           user_id: bid.user_id,
           bid_price: bid.bid_price,
@@ -166,83 +166,6 @@ export const bidAuction = async (req, res) => {
         console.error('bidAuction 에러:', error);
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
-};
-
-
-//경매 리스트 조회
-export const getAuctionList = async (req, res) => {
-  try {
-    const sort = req.query.sort ;
-    console.log('Sorting condition:', sort);
-
-
-    const auctions = await Auction.findAll({
-      attributes: ['id', 'artwork_id', 'start_time', 'end_time', 'start_price', 'current_price', 'final_price'],
-      include: [
-        {
-          model: Artwork,
-          as: 'artwork',
-          attributes: ['title', 'thumbnail_image_url', 'height', 'width'],
-          include: [{ model: Author, as: 'author', attributes: ['author_name'] }]
-        },
-        {
-          model: AuctionBid,
-          as: 'bids',
-          attributes: ['id']
-        }
-      ]
-    });
-
-
-    let auctionData = auctions.map(auction => auction.get({ plain: true }));
-
-    switch (sort) {
-      case 'popular':
- 
-        auctionData = auctionData.sort((a, b) => b.bids.length - a.bids.length);
-        break;
-
-      case 'title':
-
-        auctionData = auctionData.sort((a, b) => {
-          const titleA = a.artwork?.title || '';
-          const titleB = b.artwork?.title || '';
-          return titleA.localeCompare(titleB);
-        });
-        break;
-
-      case 'latest':
-      default:
-        auctionData = auctionData.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
-        break;
-    }
-
-    const auctionList = auctionData.map(auction => {
-      const { artwork } = auction;
-      if (!artwork) return null;
-
-      const auctionStatus = new Date(auction.end_time) > new Date() ? '진행 중' : '완료';
-      console.log(`Auction ID: ${auction.id}, Status: ${auctionStatus}`);
-
-      return {
-        auction_id: auction.id,
-        title: artwork.title || 'Unknown',
-        thumbnail_image_url: artwork.thumbnail_image_url || '',
-        size: `${Math.floor(artwork.height || 0)}cm * ${Math.floor(artwork.width || 0)}cm`,
-        author_name: artwork.author?.author_name || 'Unknown',
-        end_time: auction.end_time,
-        status: auctionStatus,
-        ...(auctionStatus === '진행 중'
-          ? { start_price: auction.start_price, current_price: auction.current_price }
-          : { final_price: auction.final_price })
-      };
-    }).filter(Boolean);
-
-    return sendResponse(res, status.SUCCESS, auctionList);
-  } catch (error) {
-    console.error('getAuctionList 에러:', error);
-    return sendResponse(res, status.INTERNAL_SERVER_ERROR);
-  }
 };
 
 // 경매 상세 조회
@@ -308,10 +231,81 @@ export const getAuctionDetail = async (req, res) => {
             images: auction.artwork.images.map(image => image.image_url)
         }
     };
-      broadcastToClients(status.SUCCESS, auctionDetail);
       return sendResponse(res, status.SUCCESS, auctionDetail);
   } catch (error) {
       console.error('getAuctionDetail 에러:', error);
       return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+  }
+};
+
+//경매 리스트 조회
+export const getAuctionList = async (req, res) => {
+  try {
+    const sort = req.query.sort || 'title'; 
+    console.log('Sorting condition:', sort);
+
+    const auctions = await Auction.findAll({
+      attributes: ['id', 'artwork_id', 'start_time', 'end_time', 'start_price', 'current_price', 'final_price'],
+      include: [
+        {
+          model: Artwork,
+          as: 'artwork',
+          attributes: ['title', 'thumbnail_image_url', 'height', 'width'],
+          include: [{ model: Author, as: 'author', attributes: ['author_name'] }]
+        },
+        {
+          model: AuctionBid,
+          as: 'bids',
+          attributes: ['id']
+        }
+      ]
+    });
+
+    let auctionData = auctions.map(auction => auction.get({ plain: true }));
+
+    switch (sort) {
+      case 'popular':  
+        auctionData.sort((a, b) => b.bids.length - a.bids.length);
+        break;
+
+      case 'latest':  
+        auctionData.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+        break;
+
+      case 'title':  
+      default:
+        auctionData.sort((a, b) => {
+          const titleA = a.artwork?.title || '';
+          const titleB = b.artwork?.title || '';
+          return titleA.localeCompare(titleB, 'ko', { sensitivity: 'base' });
+        });
+        break;
+    }
+
+    const auctionList = auctionData.map(auction => {
+      const { artwork } = auction;
+      if (!artwork) return null;
+
+      const auctionStatus = new Date(auction.end_time) > new Date() ? '경매 진행 중' : '경매 완료';
+
+      return {
+        auction_id: auction.id,
+        status: auctionStatus,
+        thumbnail_image_url: artwork.thumbnail_image_url || '',
+        author_name: artwork.author?.author_name || 'Unknown',
+        title: artwork.title || 'Unknown',
+        height : artwork.height,
+        width : artwork.width,
+        size: artwork.height + "cm" + "*" +  artwork.width + "cm",
+        ...(auctionStatus === '경매 진행 중'
+          ? { start_price: auction.start_price, current_price: auction.current_price }
+          : { final_price: auction.final_price }),
+      };
+    }).filter(Boolean);
+
+    return sendResponse(res, status.SUCCESS, auctionList);
+  } catch (error) {
+    console.error('getAuctionList 에러:', error);
+    return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 };
