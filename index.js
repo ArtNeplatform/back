@@ -22,6 +22,8 @@ import artworkDetailRoutes from './src/domain/Artwork/artworkDetailRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+process.env.TZ = 'Asia/Seoul';
+
 
 app.use(cors({
     origin: 'http://localhost:5173',  // 필요한 프론트엔드 URL 추후에 연결 후  설정

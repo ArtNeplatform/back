@@ -1,5 +1,6 @@
 import expressWs from 'express-ws';
 import { response } from './response.js';
+import { convertDatesInResult } from './dateFormatter.js'
 
 let webSocketClients = [];
 
@@ -29,9 +30,10 @@ export const registerWebSocket = (ws) => {
     });
 };
 
-export const broadcastToClients = (statusObject, result = null) => {
-    const broadcastMessage = response(statusObject, result);
 
+export const broadcastToClients = (statusObject, result = null) => {
+    const broadcastMessage = response(statusObject, convertDatesInResult(result));
+    
     webSocketClients.forEach((client) => {
         if (client.readyState === client.OPEN) {
             client.send(JSON.stringify(broadcastMessage));
