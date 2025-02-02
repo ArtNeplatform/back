@@ -15,13 +15,11 @@ Auction.init(
     final_price: { type: DataTypes.DECIMAL },
     start_time: { type: DataTypes.DATE },
     end_time: { type: DataTypes.DATE },
-    created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
     modelName: 'Auction',
     sequelize,
-    timestamps: false,
+    timestamps: true,
   }
 );
 
