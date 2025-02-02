@@ -57,10 +57,10 @@ export const getArtworkDetails = async (req, res) => {
     const exhibitionCount = await Exhibition.count({ where: { author_id: author?.id } });
 
     const responseData = {
-      fixedInfo: {
-        authorName: author?.author_name || 'Unknown',
-        artworkTitle: artwork.title,
-        artworkImage: artwork.images.map((image) => image.image_url),
+      fixed_info: {  // 수정된 부분: fixedInfo -> fixed_info
+        author_name: author?.author_name || 'Unknown',  // 수정된 부분: authorName -> author_name
+        artwork_title: artwork.title,  // 수정된 부분: artworkTitle -> artwork_title
+        artwork_image: artwork.images.map((image) => image.image_url),  // 수정된 부분: artworkImage -> artwork_image
         year: artwork.year,
         dimensions: `${formatNumber(artwork.height)} x ${formatNumber(artwork.width)} cm`,
         material: artwork.material,
@@ -68,20 +68,20 @@ export const getArtworkDetails = async (req, res) => {
         category: artwork.theme,
         genre: artwork.genre,
       },
-      tabData: {
+      tab_data: {  // 수정된 부분: tabData -> tab_data
         description: artwork.description,
-        userSpace: userSpaces.length > 0 ? userSpaces.map((space) => ({
+        user_space: userSpaces.length > 0 ? userSpaces.map((space) => ({  // 수정된 부분: userSpace -> user_space
           name: space.name,
-          imageUrl: space.image_url,
+          image_url: space.image_url,
           area: space.area,
         })) : [],
-        authorId: author?.id,
-        authorName: author?.author_name,
-        authorImage: author?.author_image_url,
-        workStyle: author?.work_style,
-        artworkCount,  // 작품 수
-        exhibitionCount,  // 전시 수
-        otherArtworks: artwork.author ? await Artwork.findAll({
+        author_id: author?.id,  // 수정된 부분: authorId -> author_id
+        author_name: author?.author_name,  // 수정된 부분: authorName -> author_name
+        author_image: author?.author_image_url,  // 수정된 부분: authorImage -> author_image
+        work_style: author?.work_style,  // 수정된 부분: workStyle -> work_style
+        artwork_count: artworkCount,  // 수정된 부분: artworkCount -> artwork_count
+        exhibition_count: exhibitionCount,  // 수정된 부분: exhibitionCount -> exhibition_count
+        other_artworks: artwork.author ? await Artwork.findAll({
           where: { author_id: artwork.author.id, id: { [Op.ne]: artworkId } },
           attributes: ['id', 'title', 'thumbnail_image_url'],
         }).then((otherArtworks) => otherArtworks.map((item) => ({
