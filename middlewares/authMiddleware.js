@@ -29,3 +29,24 @@ export const verifyToken = (req, res, next) => {
         next(error);
     }
 };
+
+//임시토큰발급(삭제예정)
+export const getTempTokenByUserId = (req, res, next) => {
+    try {
+      const { userId } = req.params;
+
+      const token = jwt.sign(
+        { userId }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '30d' }
+      );
+  
+      return res.status(200).json({
+        success: true,
+        token,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+  

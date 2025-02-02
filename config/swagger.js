@@ -1,6 +1,6 @@
 // Swagger 설정 파일
-// ES6문법에서 Autogen을 사용하기 위한 변형
-const swaggerAutogen = require('swagger-autogen')({ openapi: '3.0.0' });
+// const swaggerAutogen = require('swagger-autogen')({ openapi: '3.0.0' });
+import swaggerAutogen from 'swagger-autogen' 
 const PORT = 3306; // 사용하는 포트 번호에 맞게 변경
 
 const options = {

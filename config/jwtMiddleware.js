@@ -8,8 +8,8 @@ import dotenv from 'dotenv';
 // 루트에서 환경변수 불러옴
 dotenv.config({ path: "./.env" });
 import { JWT_SECRET } from './jwt.js'
-const jwtsecret = JWT_SECRET
-// const jwtsecret = process.env.JWT_SECRET;
+//const jwtsecret = JWT_SECRET
+const jwtsecret = process.env.JWT_SECRET;
 
 const jwtMiddleware = (req, res, next) => {
     // read the token from header or url

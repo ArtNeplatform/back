@@ -1,3 +1,5 @@
+import { convertDatesInResult } from './dateFormatter.js';
+
 export const response = ({isSuccess, code, message}, result) => {
     return {
         isSuccess: isSuccess,
@@ -6,3 +8,13 @@ export const response = ({isSuccess, code, message}, result) => {
         result: result
     }
 };
+
+export const sendResponse = (res, statusObject, result = null) => {
+    return res.status(statusObject.status).json({
+      isSuccess: statusObject.isSuccess,
+      code: statusObject.code,
+      message: statusObject.message,
+      result: result ? convertDatesInResult(result) : null,
+    });
+  };
+
