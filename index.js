@@ -19,6 +19,7 @@ import './src/domain/sequelizeRelations.js'; // 관계 설정
 import userSpaceRoutes from './src/domain/User/userSpaceRoutes.js'; 
 import artworkRoutes from './src/domain/Artwork/artworkCreateRoutes.js';
 import artworkDetailRoutes from './src/domain/Artwork/artworkDetailRoutes.js';
+import mainHomeRoutes from './src/domain/Artwork/mainHomeRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,6 +53,7 @@ app.use(cors({
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
   app.use('/api/author', authorRoutes); // 작가
+  app.use('/api/',mainHomeRoutes ); // 작가
   app.use('/api/auction', auctionrRoutes); // 경매
 
   //웹소켓
