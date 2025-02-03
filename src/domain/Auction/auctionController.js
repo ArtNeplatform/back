@@ -1,13 +1,20 @@
 import nodeSchedule from 'node-schedule';
 import { sendResponse } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
+import sequelize from '../sequelize.js';
 import Auction from './AuctionModel.js';
 import AuctionBid from './AuctionbidModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
 import ArtworkImage from '../Artwork/ArtworkImageModel.js';
+import FavoriteAuction from '../Favorite/FavoriteAuction.js';
 import Author from '../Author/AuthorModel.js';
 import { broadcastToClients } from '../../../config/webSocket.js';
 import { convertToKST, getCurrentKST } from '../../../config/dateFormatter.js';
+
+// 정렬 함수들
+const sortByPopular = (auctionData) => auctionData.sort((a, b) => b.favoritesCount - a.favoritesCount);
+const sortByLatest = (auctionData) => auctionData.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+const sortByTitle = (auctionData) => auctionData.sort((a, b) => (a.artwork?.title || '').localeCompare(b.artwork?.title || '', 'ko', { sensitivity: 'base' }));
 
 // 경매 종료 스케줄링
 export const scheduleAuctionEnd = (auction) => {
@@ -173,51 +180,50 @@ export const bidAuction = async (req, res) => {
   }
 };
 
-
 // 경매 리스트 조회
 export const getAuctionList = async (req, res) => {
   try {
     const sort = req.query.sort || 'title';
+    const userId = req.user.userId;
 
+    // 경매 데이터 조회
     const auctions = await Auction.findAll({
-      attributes: ['id', 'artwork_id', 'start_time', 'end_time', 'start_price', 'current_price', 'final_price'],
+      attributes: [
+        'id', 'artwork_id', 'start_time', 'end_time', 
+        'start_price', 'current_price', 'final_price',
+        [sequelize.literal('(SELECT COUNT(*) FROM FavoriteAuctions WHERE FavoriteAuctions.auction_id = Auction.id)'), 'favoritesCount']
+      ],
       include: [
         {
           model: Artwork,
           as: 'artwork',
           attributes: ['title', 'thumbnail_image_url', 'height', 'width'],
           include: [{ model: Author, as: 'author', attributes: ['author_name'] }]
-        },
-        {
-          model: AuctionBid,
-          as: 'bids',
-          attributes: ['id']
         }
       ]
     });
 
+    // 사용자가 좋아요한 경매 ID 가져오기
+    const likedAuctions = await FavoriteAuction.findAll({
+      where: { user_id: userId },
+      attributes: ['auction_id']
+    });
+
+    const likedAuctionIds = new Set(likedAuctions.map(item => item.auction_id)); 
+
     let auctionData = auctions.map(auction => auction.get({ plain: true }));
 
+    // 정렬 처리
     switch (sort) {
       case 'popular':
-        auctionData.sort((a, b) => (b.bids.length || 0) - (a.bids.length || 0)); 
+        auctionData = sortByPopular(auctionData);
         break;
-
       case 'latest':
-        auctionData.sort((a, b) => {
-          const startA = a.start_time
-          const startB = b.start_time
-          return startB - startA; 
-        });
+        auctionData = sortByLatest(auctionData);
         break;
-
       case 'title':
       default:
-        auctionData.sort((a, b) => {
-          const titleA = a.artwork?.title || '';
-          const titleB = b.artwork?.title || '';
-          return titleA.localeCompare(titleB, 'ko', { sensitivity: 'base' });
-        });
+        auctionData = sortByTitle(auctionData);
         break;
     }
 
@@ -225,23 +231,21 @@ export const getAuctionList = async (req, res) => {
       const { artwork } = auction;
       if (!artwork) return null;
 
-      const auctionStatus = auction.final_price === null ? '경매 진행 중' : '경매 완료';
-
       return {
         auction_id: auction.id,
-        status: auctionStatus,
+        status: auction.final_price === null ? '경매 진행 중' : '경매 완료',
         thumbnail_image_url: artwork.thumbnail_image_url || '',
         author_name: artwork.author?.author_name || 'Unknown',
         title: artwork.title || 'Unknown',
         height: artwork.height,
         width: artwork.width,
         size: `${artwork.height}cm * ${artwork.width}cm`,
-        ...(auctionStatus === '경매 진행 중'
+        ...(auction.final_price === null
           ? { start_price: auction.start_price, current_price: auction.current_price }
           : { final_price: auction.final_price }),
+        is_liked: likedAuctionIds.has(auction.id) 
       };
-    }).filter(Boolean); 
-
+    }).filter(Boolean);
 
     return sendResponse(res, status.SUCCESS, auctionList);
   } catch (error) {
