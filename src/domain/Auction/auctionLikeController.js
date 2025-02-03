@@ -1,7 +1,7 @@
 import { sendResponse } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 import Auction from './AuctionModel.js';
-import FavoriteAuction from '../Favorite/FavoriteAuction.js';
+import FavoriteAuction from '../Favorite/FavoriteAuctionModel.js';
 
 // 경매 좋아요
 export const addFavoriteAuction = async (req, res, next) => {

@@ -6,7 +6,7 @@ import Auction from './AuctionModel.js';
 import AuctionBid from './AuctionbidModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
 import ArtworkImage from '../Artwork/ArtworkImageModel.js';
-import FavoriteAuction from '../Favorite/FavoriteAuction.js';
+import FavoriteAuction from '../Favorite/FavoriteAuctionModel.js';
 import Author from '../Author/AuthorModel.js';
 import { broadcastToClients } from '../../../config/webSocket.js';
 import { convertToKST, getCurrentKST } from '../../../config/dateFormatter.js';
