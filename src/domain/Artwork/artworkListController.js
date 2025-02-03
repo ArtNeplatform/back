@@ -30,7 +30,7 @@ export const getArtworkList = async (req, res) => {
           '~60호': { [Op.lte]: 60 },
           '~80호': { [Op.lte]: 80 },
           '~100호': { [Op.lte]: 100 },
-          '100호 +': { [Op.gt]: 100 },
+          '100호+': { [Op.gt]: 100 },
         };
    
         const sizeArray = sizes.split(',').filter(size => sizeFilters[size]); // 유효한 사이즈만 필터링
