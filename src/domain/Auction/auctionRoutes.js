@@ -26,17 +26,17 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // 경매 상세 조회 API
-router.get('/:auctionId', verifyToken, async (req, res) => {
+router.get('/:auction_id', verifyToken, async (req, res) => {
     await getAuctionDetail(req, res);
 });
 
 // 경매 좋아요 API
-router.post('/:auctionId/like', verifyToken, async (req, res) => {
+router.post('/:auction_id/like', verifyToken, async (req, res) => {
     await addFavoriteAuction(req, res);
 });
 
 // 경매 좋아요 취소 API
-router.post('/:auctionId/unlike', verifyToken, async (req, res) => {
+router.post('/:auction_id/unlike', verifyToken, async (req, res) => {
     await removeFavoriteAuction(req, res);
 });
 
