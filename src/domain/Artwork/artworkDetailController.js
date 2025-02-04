@@ -38,7 +38,7 @@ export const getArtworkDetails = async (req, res) => {
       userSpacesPromise = Users.findOne({ where: { email: user.email } })
         .then((foundUser) => foundUser ? UserSpace.findAll({
           where: { user_id: foundUser.id },
-          attributes: ['name', 'image_url', 'area'],
+          attributes: ['id', 'name', 'image_url', 'area'],
         }) : []);
     }
 
@@ -70,7 +70,8 @@ export const getArtworkDetails = async (req, res) => {
       },
       tab_data: {  
         description: artwork.description,
-        user_space: userSpaces.length > 0 ? userSpaces.map((space) => ({  
+        userspace: userSpaces.length > 0 ? userSpaces.map((space) => ({  
+          userspace_id: space.id,
           name: space.name,
           image_url: space.image_url,
           area: space.area,

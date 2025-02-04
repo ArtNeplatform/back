@@ -871,11 +871,15 @@
                             "type": "string",
                             "example": "This is a beautiful artwork created in 2022."
                           },
-                          "user_space": {
+                          "userspace": {
                             "type": "array",
                             "items": {
                               "type": "object",
                               "properties": {
+                                "userspace_id": {
+                                  "type": "integer",
+                                  "example": 11
+                                },
                                 "name": {
                                   "type": "string",
                                   "example": "Art Gallery A"
@@ -1635,6 +1639,10 @@
                   "items": {
                     "type": "object",
                     "properties": {
+                      "artwork_id": {
+                        "type": "integer",
+                        "example": 11
+                      },
                       "author_name": {
                         "type": "string",
                         "example": "김작가"

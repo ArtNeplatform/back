@@ -60,6 +60,7 @@ export const getUserPurchasedArtworks = async (req, res) => {
 
     // 응답 데이터 구성
     const responseData = payments.map((payment) => ({
+      artwork_id: payment.auction.artwork.id,
       author_name: payment.auction.artwork.author.author_name,
       title: payment.auction.artwork.title,
       size: `${formatNumber(payment.auction.artwork.width)}cm*${formatNumber(payment.auction.artwork.height)}cm`,
