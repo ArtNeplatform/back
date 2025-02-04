@@ -7,18 +7,22 @@ import User from '../User/UserModel.js';
 export const updateBankInfo = async (req, res) => {
     try {
         const { bank_name, account_holder, account_number } = req.body;
-        const userId = req.user.userId;
+        const email = req.user.email
+
+        const user = await User.findOne({ where: { email }, attributes: ['id'] });
+        if (!user) return sendResponse(res, status.USER_NOT_FOUND);
+        const user_id = user.id;
    
         if (!bank_name || !account_holder || !account_number) {
             return sendResponse(res, status.BANK_INFO_NOT_PROVIDED);
         }
 
-        let author = await Author.findOne({ where: { user_id: userId } });
+        let author = await Author.findOne({ where: { user_id } });
 
         if (author) {
             await author.update({ bank_name, account_holder, account_number });
         } else {
-            author = await Author.create({ user_id: userId, bank_name, account_holder, account_number });
+            author = await Author.create({ user_id, bank_name, account_holder, account_number });
         }
         
         return sendResponse(res, status.SUCCESS, { bank_name, account_holder, account_number });
@@ -118,7 +122,10 @@ export const getAuthorDetail = async (req, res, next) => {
 // 작가 프로필 정보 조회 API
 export const getAuthorInfo = async (req, res) => {
     try {
-        const userId = req.user.userId;
+        const email = req.user.email
+        const user = await User.findOne({ where: { email }, attributes: ['id'] });
+        const user_id = user.id;
+
         const type = req.query.type || 'default'; 
 
         let attributes = [];
@@ -131,7 +138,7 @@ export const getAuthorInfo = async (req, res) => {
         }
 
         const author = await Author.findOne({
-            where: { user_id: userId },
+            where: { user_id: user_id },
             include: [{ model: User, attributes: ['email'] }],
             attributes
         });
@@ -195,7 +202,11 @@ const parseTextToArray = (text) => {
 //작가 프로필 정보 수정 API
 export const updateAuthorProfile = async (req, res) => {
     try {
-        const userId = req.user.userId;
+
+        const email = req.user.email
+        const user = await User.findOne({ where: { email }, attributes: ['id'] });
+        const user_id = user.id;
+
         const attribute = req.body.attribute;  
         const value = req.body.value;          
 
@@ -208,7 +219,7 @@ export const updateAuthorProfile = async (req, res) => {
             return sendResponse(res, status.PROFILE_INFO_NOT_PROVIDED, null);
         }
 
-        const author = await Author.findOne({ where: { user_id: userId } });
+        const author = await Author.findOne({ where: { user_id: user_id } });
         if (!author) {
             return sendResponse(res, status.AUTHOR_NOT_FOUND);
         }

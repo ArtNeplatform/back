@@ -11,7 +11,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 
 import { initializeWebSocket } from './config/webSocket.js';
-import { verifyToken,getTempTokenByUserId } from './middlewares/authMiddleware.js';
+import { verifyToken,getTempTokenByEmail } from './middlewares/authMiddleware.js';
 import authRoutes from './src/domain/Authentication/authRoutes.js';
 import authorRoutes from './src/domain/Author/authorRoutes.js';
 import auctionrRoutes from './src/domain/Auction/auctionRoutes.js';
@@ -50,7 +50,7 @@ app.use(cors({
   });
 
   //테스트용 임시토큰발급(삭제예정)
-  app.post('/temp-token/:userId',getTempTokenByUserId);
+  app.post('/temp-token/:email',getTempTokenByEmail);
 
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
