@@ -5,11 +5,7 @@ import { verifyToken } from '../../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// router.get('/artworks', async (req, res) => {
-//   await getArtworkList(req, res);
-// });
-
-// 작품 리스트 조회
+// 작품 리스트 조회 API
 router.get('/artworks', (req, res, next) => {
   // Authorization 헤더가 있을 경우에만 verifyToken 미들웨어 실행
   if (req.headers.authorization) {
