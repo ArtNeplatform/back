@@ -1,4 +1,5 @@
 import nodeSchedule from 'node-schedule';
+import { DateTime } from 'luxon';
 import { sendResponse } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 import sequelize from '../sequelize.js';
@@ -20,7 +21,13 @@ const sortByTitle = (auctionData) => auctionData.sort((a, b) => (a.artwork?.titl
 export const scheduleAuctionEnd = (auction) => {
   if (!auction?.end_time) return;
 
-  const endTime = convertToKST(auction.end_time).toJSDate();
+  const endTime = DateTime.fromFormat(convertToKST(new Date(auction.end_time)), 'yyyy-MM-dd HH:mm:ss', { zone: 'Asia/Seoul' }).toJSDate();
+
+  if (isNaN(endTime.getTime())) {
+    console.error(`Invalid end_time for auction ID ${auction.id}`);
+    return;
+  }
+
   nodeSchedule.scheduleJob(endTime, async () => {
     try {
       const currentAuction = await Auction.findByPk(auction.id);
@@ -42,6 +49,7 @@ export const scheduleAuctionEnd = (auction) => {
 
   console.log(`경매 ID ${auction.id}에 대한 스케줄링이 설정되었습니다.`);
 };
+
 
 // 경매 가능 작품 조회
 export const getAvailableArtworks = async (req, res) => {
@@ -96,14 +104,12 @@ export const registerAuction = async (req, res) => {
     if (!artwork) return sendResponse(res, status.ARTWORK_NOT_FOUND);
 
     const currentTime = getCurrentKST();
-    const inputEndTime = convertToKST(end_time);
+    const inputEndTime = DateTime.fromFormat(convertToKST(new Date(end_time)), 'yyyy-MM-dd HH:mm:ss', { zone: 'Asia/Seoul' });
 
+    if (!inputEndTime.isValid) return sendResponse(res, status.INVALID_END_TIME);
     if (inputEndTime <= currentTime) return sendResponse(res, status.INVALID_END_TIME);
 
-    const ongoingAuction = await Auction.findOne({
-      where: {artwork_id}
-    });
-
+    const ongoingAuction = await Auction.findOne({ where: { artwork_id } });
     if (ongoingAuction) return sendResponse(res, status.AUCTION_ALREADY_ONGOING);
 
     const newAuction = await Auction.create({
@@ -130,6 +136,7 @@ export const registerAuction = async (req, res) => {
     return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 };
+
 
 // 경매 입찰
 export const bidAuction = async (req, res) => {
@@ -238,12 +245,12 @@ export const getAuctionList = async (req, res) => {
         thumbnail_image_url: artwork.thumbnail_image_url || '',
         author_name: artwork.author?.author_name || 'Unknown',
         title: artwork.title || 'Unknown',
-        height: artwork.height,
-        width: artwork.width,
+        height: Number(artwork.height),
+        width: Number(artwork.width),
         size: `${artwork.height}cm * ${artwork.width}cm`,
         ...(auction.final_price === null
-          ? { start_price: auction.start_price, current_price: auction.current_price }
-          : { final_price: auction.final_price })
+          ? { start_price: Number(auction.start_price), current_price: Number(auction.current_price) }
+          : { final_price: Number(auction.final_price) })
       };
 
       // 토큰이 있을 경우 is_liked 확인
@@ -316,8 +323,8 @@ export const getAuctionDetail = async (req, res) => {
         title: auction.artwork.title,
         year: auction.artwork.year,
         material: auction.artwork.material,
-        height:auction.artwork.height,
-        width:auction.artwork.width,
+        height:Number(auction.artwork.height),
+        width:Number(auction.artwork.width),
         size: `${auction.artwork.height} x ${auction.artwork.width}cm`,
         number: `${auction.artwork.number}호`,
         description: auction.artwork.description,

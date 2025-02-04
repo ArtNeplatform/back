@@ -25,8 +25,8 @@ const processArtworksData = (artworks, likedArtworks, user_id) =>
     author_name: artwork.author?.author_name,
     thumbnail_image_url: artwork.thumbnail_image_url,
     title: artwork.title,
-    height: artwork.height,
-    width: artwork.width,
+    height: Number(artwork.height),
+    width: Number(artwork.width),
     size: `${artwork.height}cm * ${artwork.width}cm`,
     is_like: user_id ? likedArtworks.has(artwork.id) : false
   }));
@@ -38,11 +38,11 @@ const processAuctionsData = (auctions, likedAuctions, user_id) =>
       author_name: auction.artwork.author?.author_name,
     thumbnail_image_url: auction.artwork.thumbnail_image_url,
     title: auction.artwork.title,
-    height: auction.artwork.height,
-    width: auction.artwork.width,
+    height: Number(auction.artwork.height),
+    width: Number(auction.artwork.width),
     size: `${auction.artwork.height}cm * ${auction.artwork.width}cm`,
-    start_price: auction.start_price,
-    current_price: auction.current_price,
+    start_price: Number(auction.start_price),
+    current_price: Number(auction.current_price),
     is_like: user_id ? likedAuctions.has(auction.id) : false
   }));
 
@@ -64,8 +64,8 @@ const processAuthorsData = async authors => {
         author_id: author.id,
         author_name: author.author_name,
         author_image_url: author.author_image_url,
-        artwork_count: artworkCount,
-        exhibition_count: exhibitionCount,
+        artwork_count: Number(artworkCount),
+        exhibition_count: Number(exhibitionCount),
         artwork_image_url: artwork?.thumbnail_image_url || null
       };
     })
