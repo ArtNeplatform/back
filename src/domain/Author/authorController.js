@@ -28,6 +28,92 @@ export const updateBankInfo = async (req, res) => {
     }
 };
 
+export const getAuthors = async (req, res, next) => {
+    try {
+      let { sort = 'name', page = 1, limit = 10 } = req.query;
+  
+      // 정수 변환 및 기본값 설정
+      page = parseInt(page, 10);
+      limit = parseInt(limit, 10);
+  
+      if (isNaN(page) || page < 1) page = 1;
+      if (isNaN(limit) || limit < 1) limit = 10;
+  
+      const offset = (page - 1) * limit;
+  
+      // 정렬 기준 매핑
+      const sortOptions = {
+        name: ['author_name', 'ASC'],
+        recent: ['recent_work_at', 'DESC'],
+        popularity: ['popularity', 'DESC']
+      };
+  
+      // 잘못된 정렬 옵션이 들어오면 기본값 적용
+      const order = sortOptions[sort] || sortOptions.name;
+  
+      const { count, rows } = await Author.findAndCountAll({
+        attributes: ['author_name', 'id'], // 일단 id만 반환
+        order: [order],
+        limit,
+        offset,
+      });
+
+      let authorNameAndCounts = {};
+        for (let i = 0; i < rows.length; i++) {
+            const author = rows[i];
+            const artwork_count = await Author.getArtworkConut(author.id);
+            const exhibition_count = await Author.getExhibitionCount(author.id);
+            authorNameAndCounts[author.author_name] = {
+                artwork_count,
+                exhibition_count
+            };
+        }
+  
+    //   return res.status(200).json({
+    //     total: count,
+    //     totalPages: Math.ceil(count / limit),
+    //     currentPage: page,
+    //     authors: rows.map(author => author.id),
+    //   });
+        return sendResponse(res, status.SUCCESS, {
+            total: count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
+            authorInfos: authorNameAndCounts
+        });
+    } catch (error) {
+      console.error('Error fetching authors:', error);
+      next(error);
+    }
+};
+
+export const getAuthorDetail = async (req, res, next) => {
+    try {
+      const authorId = req.params.authorId;
+  
+      const author = await Author.findOne({
+        where: { id: authorId },
+      });
+
+      // return experience, education, award
+      const { experience, education, award } = author;
+
+      let responseData = {};
+
+      responseData.artwork_count = await Author.getArtworkConut(authorId);
+      responseData.exhibition_count = await Author.getExhibitionCount(authorId);
+      responseData.experience = parseTextToArray(experience);
+      responseData.education = parseTextToArray(education);
+      responseData.award = parseTextToArray(award);
+
+      return sendResponse(res, status.SUCCESS, responseData);
+    }
+    catch (error) {
+        console.error('Error fetching author detail:', error);
+        return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+    }
+};
+
 
 // 작가 프로필 정보 조회 API
 export const getAuthorInfo = async (req, res) => {

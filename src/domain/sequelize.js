@@ -7,13 +7,12 @@ import ArtworkCategory from './Artwork/ArtworkCategory.js';
 import ArtworkImage from './Artwork/ArtworkImage.js';
 import Auction from './Auction/Auction.js';
 import AuctionBid from './Auction/AuctionBid.js';
-import Author from './Author/Author.js';
 import Exhibition from './Exhibition/Exhibition.js';
 import FavoriteArtwork from './Favorite/FavoriteArtwork.js';
 import FavoriteExhibition from './Favorite/FavoriteExhibition.js';
 import Payment from './Payment/Payment.js';
-import User from './User/User.js';
 import UserSpace from './User/UserSpace.js';
+
 
 dotenv.config();
 
@@ -27,10 +26,10 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 
 // 모델 초기화
 const initModels = () => {
-  User(sequelize);
+  // User(sequelize);
+  // Author(sequelize);
   UserSpace(sequelize);
   Agreement(sequelize);
-  Author(sequelize);
   Artwork(sequelize);
   ArtworkCategory(sequelize);
   ArtworkImage(sequelize);
