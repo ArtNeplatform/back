@@ -115,11 +115,11 @@ export const updateAuthorProfile = async (req, res) => {
 
         const allowedAttributes = ['description', 'work_style', 'education', 'award', 'experience'];
         if (!allowedAttributes.includes(attribute)) {
-            return sendResponse(res, status.INVALID_ATTRIBUTE, `Invalid attribute: ${attribute}`);
+            return sendResponse(res, status.INVALID_ATTRIBUTE, null);
         }
 
         if (!value) {
-            return sendResponse(res, status.PROFILE_INFO_NOT_PROVIDED, `No data provided for ${attribute}`);
+            return sendResponse(res, status.PROFILE_INFO_NOT_PROVIDED, null);
         }
 
         const author = await Author.findOne({ where: { user_id: userId } });
@@ -129,7 +129,9 @@ export const updateAuthorProfile = async (req, res) => {
 
         await author.update({ [attribute]: value });
 
-        return sendResponse(res, status.SUCCESS, { [attribute]: value });
+        return sendResponse(res, status.SUCCESS, {
+            attribute:attribute,
+            value : value });
     } catch (error) {
         console.error('updateAuthorProfile 에러:', error);
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
