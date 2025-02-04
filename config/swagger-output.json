@@ -51,12 +51,12 @@
         }
       }
     },
-    "/temp-token/{userId}": {
+    "/temp-token/{email}": {
       "post": {
         "description": "",
         "parameters": [
           {
-            "name": "userId",
+            "name": "email",
             "in": "path",
             "required": true,
             "type": "string"
