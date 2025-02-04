@@ -137,14 +137,13 @@ export const registerAuction = async (req, res) => {
   }
 };
 
-
 // 경매 입찰
 export const bidAuction = async (req, res) => {
   try {
-    const { auctionId, bidPrice } = req.body;
-    const userId = Number(req.user.userId); 
-
-    const auction = await Auction.findByPk(auctionId, {
+    const { auction_id, bid_price } = req.body;
+    const user_id = Number(req.user.userId); 
+    
+    const auction = await Auction.findByPk(auction_id, {
       include: {
         model: Artwork,
         as: 'artwork',
@@ -156,28 +155,29 @@ export const bidAuction = async (req, res) => {
     });
 
     if (!auction) return sendResponse(res, status.AUCTION_NOT_FOUND);
-    if (Number(auction.artwork.author.user_id) === userId) return sendResponse(res, status.CANNOT_BID_OWN_AUCTION);
-    if (bidPrice <= auction.start_price) return sendResponse(res, status.BID_LOWER_THAN_START_PRICE);
-    if (bidPrice <= auction.current_price) return sendResponse(res, status.BID_LOWER_THAN_CURRENT_PRICE);
+    if (Number(auction.artwork.author.user_id) === user_id) return sendResponse(res, status.CANNOT_BID_OWN_AUCTION);
+    if (bid_price <= auction.start_price) return sendResponse(res, status.BID_LOWER_THAN_START_PRICE);
+    if (bid_price <= auction.current_price) return sendResponse(res, status.BID_LOWER_THAN_CURRENT_PRICE);
 
-    // 현재 입찰자가 있으면 상태를 'PARTICIPATE(응찰)'로 변경
-    const currentBidder = await AuctionBid.findOne({ where: { auction_id: auctionId, status: 'BID' } });
+    const currentBidder = await AuctionBid.findOne({ where: { auction_id: auction_id, status: 'BID' } });
     if (currentBidder) await currentBidder.update({ status: 'PARTICIPATE' });
 
     const newBid = await AuctionBid.create({
-      auction_id: auctionId,
-      user_id: userId,
-      bid_price: bidPrice,
-      bid_date: getCurrentKST(),
+      auction_id: auction_id,
+      user_id: user_id,
+      bid_price: bid_price,
+      bid_date: getCurrentKST().toJSDate(),
       status: 'BID'
     });
 
-    auction.current_price = bidPrice;
+    auction.current_price = bid_price;
     await auction.save();
 
-    const bidData = newBid.get({ plain: true });
+    let bidData = newBid.get({ plain: true });
     delete bidData.created_at;
     delete bidData.updated_at;
+
+    bidData.bid_date = DateTime.fromJSDate(new Date(bidData.bid_date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd HH:mm:ss');
 
     broadcastToClients(status.SUCCESS, bidData);
     return sendResponse(res, status.SUCCESS, bidData);
@@ -186,6 +186,7 @@ export const bidAuction = async (req, res) => {
     return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 };
+
 
 /// 경매 리스트 조회
 export const getAuctionList = async (req, res) => {
