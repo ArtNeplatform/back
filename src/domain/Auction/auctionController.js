@@ -1,4 +1,5 @@
 import nodeSchedule from 'node-schedule';
+import { DateTime } from 'luxon';
 import { sendResponse } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 import sequelize from '../sequelize.js';
@@ -20,7 +21,13 @@ const sortByTitle = (auctionData) => auctionData.sort((a, b) => (a.artwork?.titl
 export const scheduleAuctionEnd = (auction) => {
   if (!auction?.end_time) return;
 
-  const endTime = convertToKST(auction.end_time).toJSDate();
+  const endTime = DateTime.fromFormat(convertToKST(new Date(auction.end_time)), 'yyyy-MM-dd HH:mm:ss', { zone: 'Asia/Seoul' }).toJSDate();
+
+  if (isNaN(endTime.getTime())) {
+    console.error(`Invalid end_time for auction ID ${auction.id}`);
+    return;
+  }
+
   nodeSchedule.scheduleJob(endTime, async () => {
     try {
       const currentAuction = await Auction.findByPk(auction.id);
@@ -42,6 +49,7 @@ export const scheduleAuctionEnd = (auction) => {
 
   console.log(`경매 ID ${auction.id}에 대한 스케줄링이 설정되었습니다.`);
 };
+
 
 // 경매 가능 작품 조회
 export const getAvailableArtworks = async (req, res) => {
@@ -96,14 +104,12 @@ export const registerAuction = async (req, res) => {
     if (!artwork) return sendResponse(res, status.ARTWORK_NOT_FOUND);
 
     const currentTime = getCurrentKST();
-    const inputEndTime = convertToKST(end_time);
+    const inputEndTime = DateTime.fromFormat(convertToKST(new Date(end_time)), 'yyyy-MM-dd HH:mm:ss', { zone: 'Asia/Seoul' });
 
+    if (!inputEndTime.isValid) return sendResponse(res, status.INVALID_END_TIME);
     if (inputEndTime <= currentTime) return sendResponse(res, status.INVALID_END_TIME);
 
-    const ongoingAuction = await Auction.findOne({
-      where: {artwork_id}
-    });
-
+    const ongoingAuction = await Auction.findOne({ where: { artwork_id } });
     if (ongoingAuction) return sendResponse(res, status.AUCTION_ALREADY_ONGOING);
 
     const newAuction = await Auction.create({
@@ -134,10 +140,10 @@ export const registerAuction = async (req, res) => {
 // 경매 입찰
 export const bidAuction = async (req, res) => {
   try {
-    const { auctionId, bidPrice } = req.body;
-    const userId = Number(req.user.userId); 
-
-    const auction = await Auction.findByPk(auctionId, {
+    const { auction_id, bid_price } = req.body;
+    const user_id = Number(req.user.userId); 
+    
+    const auction = await Auction.findByPk(auction_id, {
       include: {
         model: Artwork,
         as: 'artwork',
@@ -149,28 +155,29 @@ export const bidAuction = async (req, res) => {
     });
 
     if (!auction) return sendResponse(res, status.AUCTION_NOT_FOUND);
-    if (Number(auction.artwork.author.user_id) === userId) return sendResponse(res, status.CANNOT_BID_OWN_AUCTION);
-    if (bidPrice <= auction.start_price) return sendResponse(res, status.BID_LOWER_THAN_START_PRICE);
-    if (bidPrice <= auction.current_price) return sendResponse(res, status.BID_LOWER_THAN_CURRENT_PRICE);
+    if (Number(auction.artwork.author.user_id) === user_id) return sendResponse(res, status.CANNOT_BID_OWN_AUCTION);
+    if (bid_price <= auction.start_price) return sendResponse(res, status.BID_LOWER_THAN_START_PRICE);
+    if (bid_price <= auction.current_price) return sendResponse(res, status.BID_LOWER_THAN_CURRENT_PRICE);
 
-    // 현재 입찰자가 있으면 상태를 'PARTICIPATE(응찰)'로 변경
-    const currentBidder = await AuctionBid.findOne({ where: { auction_id: auctionId, status: 'BID' } });
+    const currentBidder = await AuctionBid.findOne({ where: { auction_id: auction_id, status: 'BID' } });
     if (currentBidder) await currentBidder.update({ status: 'PARTICIPATE' });
 
     const newBid = await AuctionBid.create({
-      auction_id: auctionId,
-      user_id: userId,
-      bid_price: bidPrice,
-      bid_date: getCurrentKST(),
+      auction_id: auction_id,
+      user_id: user_id,
+      bid_price: bid_price,
+      bid_date: getCurrentKST().toJSDate(),
       status: 'BID'
     });
 
-    auction.current_price = bidPrice;
+    auction.current_price = bid_price;
     await auction.save();
 
-    const bidData = newBid.get({ plain: true });
+    let bidData = newBid.get({ plain: true });
     delete bidData.created_at;
     delete bidData.updated_at;
+
+    bidData.bid_date = DateTime.fromJSDate(new Date(bidData.bid_date)).setZone('Asia/Seoul').toFormat('yyyy-MM-dd HH:mm:ss');
 
     broadcastToClients(status.SUCCESS, bidData);
     return sendResponse(res, status.SUCCESS, bidData);
@@ -180,11 +187,12 @@ export const bidAuction = async (req, res) => {
   }
 };
 
-// 경매 리스트 조회
+
+/// 경매 리스트 조회
 export const getAuctionList = async (req, res) => {
   try {
     const sort = req.query.sort || 'title';
-    const userId = req.user.userId;
+    const userId = req.user?.userId || null;
 
     // 경매 데이터 조회
     const auctions = await Auction.findAll({
@@ -203,14 +211,6 @@ export const getAuctionList = async (req, res) => {
       ]
     });
 
-    // 사용자가 좋아요한 경매 ID 가져오기
-    const likedAuctions = await FavoriteAuction.findAll({
-      where: { user_id: userId },
-      attributes: ['auction_id']
-    });
-
-    const likedAuctionIds = new Set(likedAuctions.map(item => item.auction_id)); 
-
     let auctionData = auctions.map(auction => auction.get({ plain: true }));
 
     // 정렬 처리
@@ -227,24 +227,38 @@ export const getAuctionList = async (req, res) => {
         break;
     }
 
+    let likedAuctionIds = new Set();
+    if (userId) {
+      const likedAuctions = await FavoriteAuction.findAll({
+        where: { user_id: userId },
+        attributes: ['auction_id']
+      });
+      likedAuctionIds = new Set(likedAuctions.map(item => item.auction_id));
+    }
+
     const auctionList = auctionData.map(auction => {
       const { artwork } = auction;
       if (!artwork) return null;
 
-      return {
+      const auctionInfo = {
         auction_id: auction.id,
         status: auction.final_price === null ? '경매 진행 중' : '경매 완료',
         thumbnail_image_url: artwork.thumbnail_image_url || '',
         author_name: artwork.author?.author_name || 'Unknown',
         title: artwork.title || 'Unknown',
-        height: artwork.height,
-        width: artwork.width,
+        height: Number(artwork.height),
+        width: Number(artwork.width),
         size: `${artwork.height}cm * ${artwork.width}cm`,
         ...(auction.final_price === null
-          ? { start_price: auction.start_price, current_price: auction.current_price }
-          : { final_price: auction.final_price }),
-        is_liked: likedAuctionIds.has(auction.id) 
+          ? { start_price: Number(auction.start_price), current_price: Number(auction.current_price) }
+          : { final_price: Number(auction.final_price) })
       };
+
+      // 토큰이 있을 경우 is_liked 확인
+      if (userId) { auctionInfo.is_liked = likedAuctionIds.has(auction.id);}
+      else {auctionInfo.is_liked = false;}
+
+      return auctionInfo;
     }).filter(Boolean);
 
     return sendResponse(res, status.SUCCESS, auctionList);
@@ -257,10 +271,10 @@ export const getAuctionList = async (req, res) => {
 //경매 상세 조회
 export const getAuctionDetail = async (req, res) => {
   try {
-    const { auctionId } = req.params;
+    const { auction_id } = req.params;
 
-    const auction = await Auction.findByPk(auctionId, {
-      attributes: ['id', 'start_time', 'start_price', 'current_price', 'final_price', 'end_time'],
+    const auction = await Auction.findByPk(auction_id, {
+      attributes: ['id', 'start_price', 'current_price', 'final_price', 'end_time'],
       include: [
         {
           model: Artwork,
@@ -301,21 +315,21 @@ export const getAuctionDetail = async (req, res) => {
 
     const auctionDetail = {
       auction_id: auction.id,
-      start_time: convertToKST(auction.start_time),
-      end_time: convertToKST(auction.end_time),
       start_price: auction.start_price,
       current_price: auction.current_price,
       final_price: auction.current_price,
       remaining_time: remainingTime, 
       artwork: {
+        author_name: auction.artwork.author?.author_name,
         title: auction.artwork.title,
-        thumbnail_image_url: auction.artwork.thumbnail_image_url,
         year: auction.artwork.year,
         material: auction.artwork.material,
+        height:Number(auction.artwork.height),
+        width:Number(auction.artwork.width),
         size: `${auction.artwork.height} x ${auction.artwork.width}cm`,
         number: `${auction.artwork.number}호`,
         description: auction.artwork.description,
-        author_name: auction.artwork.author?.author_name,
+        thumbnail_image_url: auction.artwork.thumbnail_image_url,
         images: auction.artwork.images?.map(image => image.image_url), 
       },
     };

@@ -1096,58 +1096,266 @@
         }
       }
     },
-    "/api/auction/available-artwork": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
+   "/api/auction/available-artworks": {
+    "get": {
+      "tags": ["경매"],
+      "summary": "경매 가능 작품 조회",
+      "description": "작가가 경매에 등록할 수 있는 작품 목록을 조회하는 API 입니다.(현재 경매 진행중 X 완료 X인 작품)",
+      "parameters": [
+        {
+          "name": "authorization",
+          "in": "header",
+          "type": "string",
+          "required": true,
+          "description": "인증 토큰"
         }
-      }
-    },
-    "/api/auction/register": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "artwork_id": {
-                  "example": "any"
-                },
-                "start_price": {
-                  "example": "any"
-                },
-                "end_time": {
-                  "example": "any"
+      ],
+      "responses": {
+        "200": {
+          "description": "경매 가능 작품 조회 성공",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "2000"
+              },
+              "message": {
+                "type": "string",
+                "example": "success!"
+              },
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "artwork_id": {
+                      "type": "integer",
+                      "example": 45
+                    },
+                    "title": {
+                      "type": "string",
+                      "example": "산수화"
+                    },
+                    "thumbnail_image_url": {
+                      "type": "string",
+                      "example": "https://artwork-image.s3.ap-northeast-2.amazonaws.com/example.jpg"
+                    }
+                  }
                 }
               }
             }
           }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
+        },
+        "404": {
+          "description": "작가 정보가 없거나 등록 가능한 작품이 없음",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "AUTHOR4002"
+              },
+              "message": {
+                "type": "string",
+                "example": "작가 정보가 없습니다."
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "서버 내부 오류",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON000"
+              },
+              "message": {
+                "type": "string",
+                "example": "서버 에러, 관리자에게 문의 바랍니다."
+              }
+            }
           }
         }
       }
-    },
+    }
+  },
+  "/api/auction/register": {
+    "post": {
+      "tags": ["경매"],
+      "summary": "경매 등록",
+      "description": "작가가 작품을 새로운 경매로 등록하는 API 입니다..",
+      "parameters": [
+        {
+          "name": "authorization",
+          "in": "header",
+          "type": "string",
+          "required": true,
+          "description": "인증 토큰"
+        },
+        {
+          "name": "auctionData",
+          "in": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "artwork_id": {
+                "type": "integer",
+                "example": 12
+              },
+              "start_price": {
+                "type": "number",
+                "example": 50000
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-02-10T18:00:00.000Z"
+              }
+            }
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "경매 등록 성공",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "2000"
+              },
+              "message": {
+                "type": "string",
+                "example": "success!"
+              },
+              "result": {
+                "type": "object",
+                "properties": {
+                  "auction_id": {
+                    "type": "integer",
+                    "example": 101
+                  },
+                  "start_time": {
+                    "type": "string",
+                    "example": "2025-02-01 14:00:00"
+                  },
+                  "end_time": {
+                    "type": "string",
+                    "example": "2025-02-10 18:00:00"
+                  },
+                  "start_price": {
+                    "type": "number",
+                    "example": 50000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "잘못된 요청",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON001"
+              },
+              "message": {
+                "type": "string",
+                "example": "잘못된 요청입니다."
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "권한 오류",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON002"
+              },
+              "message": {
+                "type": "string",
+                "example": "권한이 잘못되었습니다."
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "중복된 경매 등록",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "AUCTION4001"
+              },
+              "message": {
+                "type": "string",
+                "example": "이미 진행 중인 경매가 있습니다."
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "서버 내부 오류",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON000"
+              },
+              "message": {
+                "type": "string",
+                "example": "서버 에러, 관리자에게 문의 바랍니다."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
     "/api/auction/bid": {
       "post": {
         "description": "",
