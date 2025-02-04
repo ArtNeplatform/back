@@ -41,6 +41,8 @@ export const status = {
     BID_LOWER_THAN_CURRENT_PRICE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4005', message: '입찰가가 현재가보다 낮습니다.' },
     BID_LOWER_THAN_START_PRICE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4006', message: '입찰가가 시작가보다 낮습니다.' },
     CANNOT_BID_OWN_AUCTION:  { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4007', message: '경매 등록자는 입찰 할 수 없습니다.' },
+    AUCTION_ALREADY_FAVORITED: {status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4008', message: '이미 좋아요한 경매입니다.' },
+    AUCTION_FAVORITE_NOT_FOUND: { status: StatusCodes.NOT_FOUND, isSuccess: false, code: 'AUCTION4009', message: '좋아요된 경매를 찾을 수 없습니다.'},
 
 
     // login err

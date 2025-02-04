@@ -57,10 +57,10 @@ export const getArtworkDetails = async (req, res) => {
     const exhibitionCount = await Exhibition.count({ where: { author_id: author?.id } });
 
     const responseData = {
-      fixedInfo: {
-        authorName: author?.author_name || 'Unknown',
-        artworkTitle: artwork.title,
-        artworkImage: artwork.images.map((image) => image.image_url),
+      fixed_info: {  
+        author_name: author?.author_name || 'Unknown',  
+        artwork_title: artwork.title,  
+        artwork_image: artwork.images.map((image) => image.image_url),  
         year: artwork.year,
         dimensions: `${formatNumber(artwork.height)} x ${formatNumber(artwork.width)} cm`,
         material: artwork.material,
@@ -68,20 +68,20 @@ export const getArtworkDetails = async (req, res) => {
         category: artwork.theme,
         genre: artwork.genre,
       },
-      tabData: {
+      tab_data: {  
         description: artwork.description,
-        userSpace: userSpaces.length > 0 ? userSpaces.map((space) => ({
+        user_space: userSpaces.length > 0 ? userSpaces.map((space) => ({  
           name: space.name,
-          imageUrl: space.image_url,
+          image_url: space.image_url,
           area: space.area,
         })) : [],
-        authorId: author?.id,
-        authorName: author?.author_name,
-        authorImage: author?.author_image_url,
-        workStyle: author?.work_style,
-        artworkCount,  // 작품 수
-        exhibitionCount,  // 전시 수
-        otherArtworks: artwork.author ? await Artwork.findAll({
+        author_id: author?.id, 
+        author_name: author?.author_name,  
+        author_image: author?.author_image_url,
+        work_style: author?.work_style, 
+        artwork_count: artworkCount, 
+        exhibition_count: exhibitionCount,  
+        other_artworks: artwork.author ? await Artwork.findAll({
           where: { author_id: artwork.author.id, id: { [Op.ne]: artworkId } },
           attributes: ['id', 'title', 'thumbnail_image_url'],
         }).then((otherArtworks) => otherArtworks.map((item) => ({

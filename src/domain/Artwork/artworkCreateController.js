@@ -77,7 +77,7 @@ export const createArtwork = async (req, res) => {
     const thumbnailImageUrl = imageUrls[0]; // 첫 번째 이미지 URL
 
     // 작품 생성
-    const newArtwork = await Artwork.create({
+    const new_artwork = await Artwork.create({
       author_id: author.id,
       theme,
       form,
@@ -95,12 +95,12 @@ export const createArtwork = async (req, res) => {
     }, { transaction });
 
     // 이미지 데이터 저장
-    const artworkImages = imageUrls.map((url) => ({ artwork_id: newArtwork.id, image_url: url }));
-    await ArtworkImage.bulkCreate(artworkImages, { transaction });
+    const artwork_images = imageUrls.map((url) => ({ artwork_id: new_artwork.id, image_url: url }));
+    await ArtworkImage.bulkCreate(artwork_images, { transaction });
 
     await transaction.commit();
 
-    return res.status(status.SUCCESS.status).json(response(status.SUCCESS, { newArtwork, artworkImages }));
+    return res.status(status.SUCCESS.status).json(response(status.SUCCESS, { new_artwork, artwork_images }));
   } catch (error) {
     await transaction.rollback();
     if (error instanceof BaseError) {
