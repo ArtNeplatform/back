@@ -21,10 +21,16 @@ router.post('/bid', verifyToken, async (req, res) => {
 });
 
 // 경매 리스트 조회 API
-router.get('/', verifyToken, async (req, res) => {
-    await getAuctionList(req, res);
-});
-
+router.get('/', async (req, res) => {
+    if (req.headers.authorization) {
+      verifyToken(req, res, async () => {
+        await getAuctionList(req, res);
+      });
+    } else {
+      await getAuctionList(req, res);
+    }
+  });
+  
 // 경매 상세 조회 API
 router.get('/:auction_id', verifyToken, async (req, res) => {
     await getAuctionDetail(req, res);

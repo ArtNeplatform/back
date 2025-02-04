@@ -180,11 +180,11 @@ export const bidAuction = async (req, res) => {
   }
 };
 
-// 경매 리스트 조회
+/// 경매 리스트 조회
 export const getAuctionList = async (req, res) => {
   try {
     const sort = req.query.sort || 'title';
-    const userId = req.user.userId;
+    const userId = req.user?.userId || null;
 
     // 경매 데이터 조회
     const auctions = await Auction.findAll({
@@ -203,14 +203,6 @@ export const getAuctionList = async (req, res) => {
       ]
     });
 
-    // 사용자가 좋아요한 경매 ID 가져오기
-    const likedAuctions = await FavoriteAuction.findAll({
-      where: { user_id: userId },
-      attributes: ['auction_id']
-    });
-
-    const likedAuctionIds = new Set(likedAuctions.map(item => item.auction_id)); 
-
     let auctionData = auctions.map(auction => auction.get({ plain: true }));
 
     // 정렬 처리
@@ -227,11 +219,20 @@ export const getAuctionList = async (req, res) => {
         break;
     }
 
+    let likedAuctionIds = new Set();
+    if (userId) {
+      const likedAuctions = await FavoriteAuction.findAll({
+        where: { user_id: userId },
+        attributes: ['auction_id']
+      });
+      likedAuctionIds = new Set(likedAuctions.map(item => item.auction_id));
+    }
+
     const auctionList = auctionData.map(auction => {
       const { artwork } = auction;
       if (!artwork) return null;
 
-      return {
+      const auctionInfo = {
         auction_id: auction.id,
         status: auction.final_price === null ? '경매 진행 중' : '경매 완료',
         thumbnail_image_url: artwork.thumbnail_image_url || '',
@@ -242,9 +243,14 @@ export const getAuctionList = async (req, res) => {
         size: `${artwork.height}cm * ${artwork.width}cm`,
         ...(auction.final_price === null
           ? { start_price: auction.start_price, current_price: auction.current_price }
-          : { final_price: auction.final_price }),
-        is_liked: likedAuctionIds.has(auction.id) 
+          : { final_price: auction.final_price })
       };
+
+      // 토큰이 있을 경우 is_liked 확인
+      if (userId) { auctionInfo.is_liked = likedAuctionIds.has(auction.id);}
+      else {auctionInfo.is_liked = false;}
+
+      return auctionInfo;
     }).filter(Boolean);
 
     return sendResponse(res, status.SUCCESS, auctionList);
