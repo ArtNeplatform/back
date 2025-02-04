@@ -3,6 +3,7 @@ import { DateTime } from 'luxon';
 import { sendResponse } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 import sequelize from '../sequelize.js';
+import User from '../User/UserModel.js';
 import Auction from './AuctionModel.js';
 import AuctionBid from './AuctionbidModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
@@ -54,9 +55,12 @@ export const scheduleAuctionEnd = (auction) => {
 // 경매 가능 작품 조회
 export const getAvailableArtworks = async (req, res) => {
   try {
-    const userId = req.user.userId;
 
-    const author = await Author.findOne({ where: { user_id: userId } });
+    const email = req.user.email
+    const user = await User.findOne({ where: { email }, attributes: ['id'] });
+    const user_id = user.id;
+
+    const author = await Author.findOne({ where: { user_id: user_id } });
     if (!author) {
       return sendResponse(res, status.AUTHOR_NOT_FOUND);
     }
@@ -141,7 +145,10 @@ export const registerAuction = async (req, res) => {
 export const bidAuction = async (req, res) => {
   try {
     const { auction_id, bid_price } = req.body;
-    const user_id = Number(req.user.userId); 
+
+    const email = req.user.email
+    const user = await User.findOne({ where: { email }, attributes: ['id'] });
+    const user_id = user.id;
     
     const auction = await Auction.findByPk(auction_id, {
       include: {
@@ -192,7 +199,14 @@ export const bidAuction = async (req, res) => {
 export const getAuctionList = async (req, res) => {
   try {
     const sort = req.query.sort || 'title';
-    const userId = req.user?.userId || null;
+
+    const email = req.user?.email || null;
+    let user_id = null;
+
+    if (email) {
+      const user = await User.findOne({ where: { email }, attributes: ['id'] });
+      user_id = user.id
+    }
 
     // 경매 데이터 조회
     const auctions = await Auction.findAll({
@@ -228,9 +242,9 @@ export const getAuctionList = async (req, res) => {
     }
 
     let likedAuctionIds = new Set();
-    if (userId) {
+    if (user_id) {
       const likedAuctions = await FavoriteAuction.findAll({
-        where: { user_id: userId },
+        where: { user_id: user_id },
         attributes: ['auction_id']
       });
       likedAuctionIds = new Set(likedAuctions.map(item => item.auction_id));
@@ -255,7 +269,7 @@ export const getAuctionList = async (req, res) => {
       };
 
       // 토큰이 있을 경우 is_liked 확인
-      if (userId) { auctionInfo.is_liked = likedAuctionIds.has(auction.id);}
+      if (user_id) { auctionInfo.is_liked = likedAuctionIds.has(auction.id);}
       else {auctionInfo.is_liked = false;}
 
       return auctionInfo;

@@ -1,5 +1,6 @@
 import Artwork from './ArtworkModel.js';
 import Author from '../Author/AuthorModel.js';
+import User from '../User/UserModel.js';
 import Auction from '../Auction/AuctionModel.js';
 import Exhibition from '../Exhibition/ExhibitionModel.js';
 import sequelize from '../sequelize.js';
@@ -75,8 +76,13 @@ const processAuthorsData = async authors => {
 //메인홈 조회 API
 export const getMainHomeData = async (req, res) => {
   try {
-    const user_id = req.user?.userId || null;
-    console.log('User ID:', user_id);
+    const email = req.user?.email || null;
+    let user_id = null;
+
+    if (email) {
+      const user = await User.findOne({ where: { email }, attributes: ['id'] });
+      user_id = user.id
+    }
 
     // 1. 작품 정보 가져오기(좋아요 순)
     const artworks = await Artwork.findAll({
