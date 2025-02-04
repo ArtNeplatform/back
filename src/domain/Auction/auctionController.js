@@ -263,10 +263,10 @@ export const getAuctionList = async (req, res) => {
 //경매 상세 조회
 export const getAuctionDetail = async (req, res) => {
   try {
-    const { auctionId } = req.params;
+    const { auction_id } = req.params;
 
-    const auction = await Auction.findByPk(auctionId, {
-      attributes: ['id', 'start_time', 'start_price', 'current_price', 'final_price', 'end_time'],
+    const auction = await Auction.findByPk(auction_id, {
+      attributes: ['id', 'start_price', 'current_price', 'final_price', 'end_time'],
       include: [
         {
           model: Artwork,
@@ -307,21 +307,21 @@ export const getAuctionDetail = async (req, res) => {
 
     const auctionDetail = {
       auction_id: auction.id,
-      start_time: convertToKST(auction.start_time),
-      end_time: convertToKST(auction.end_time),
       start_price: auction.start_price,
       current_price: auction.current_price,
       final_price: auction.current_price,
       remaining_time: remainingTime, 
       artwork: {
+        author_name: auction.artwork.author?.author_name,
         title: auction.artwork.title,
-        thumbnail_image_url: auction.artwork.thumbnail_image_url,
         year: auction.artwork.year,
         material: auction.artwork.material,
+        height:auction.artwork.height,
+        width:auction.artwork.width,
         size: `${auction.artwork.height} x ${auction.artwork.width}cm`,
         number: `${auction.artwork.number}호`,
         description: auction.artwork.description,
-        author_name: auction.artwork.author?.author_name,
+        thumbnail_image_url: auction.artwork.thumbnail_image_url,
         images: auction.artwork.images?.map(image => image.image_url), 
       },
     };

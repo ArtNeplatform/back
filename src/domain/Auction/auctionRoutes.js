@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
   });
   
 // 경매 상세 조회 API
-router.get('/:auction_id', verifyToken, async (req, res) => {
+router.get('/:auction_id', async (req, res) => {
     await getAuctionDetail(req, res);
 });
 
