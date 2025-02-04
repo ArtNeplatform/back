@@ -5,8 +5,8 @@ import { BaseError } from '../../../config/error.js';
 import { response } from '../../../config/response.js';  
 import { status } from '../../../config/response.status.js';  
 
-// 좋아요 추가 함수
-export const addFavoriteArtwork = async (req, res) => {
+// 좋아요 토글 함수 (등록 & 취소)
+export const toggleFavoriteArtwork = async (req, res) => {
   try {
     const { artworkId } = req.params;
 
@@ -36,7 +36,7 @@ export const addFavoriteArtwork = async (req, res) => {
       });
     }
 
-    // 이미 좋아요가 되어 있는지 확인
+    // 기존 좋아요 여부 확인 
     const existingFavorite = await FavoriteArtwork.findOne({
       where: {
         user_id: user.id,
@@ -45,21 +45,22 @@ export const addFavoriteArtwork = async (req, res) => {
     });
 
     if (existingFavorite) {
-      throw new BaseError({
-        message: 'You have already liked this artwork.',
-        code: 'BAD_REQUEST',
+      // 이미 좋아요를 눌렀다면 삭제 (좋아요 취소)
+      await existingFavorite.destroy();
+      return res.status(status.SUCCESS.status).json(
+        response(status.SUCCESS, { message: '좋아요가 취소되었습니다.' })
+      );
+    } else {
+      // 좋아요 추가
+      const newFavorite = await FavoriteArtwork.create({
+        user_id: user.id,
+        artwork_id: artworkId,
       });
+
+      return res.status(status.SUCCESS.status).json(
+        response(status.SUCCESS, { message: '좋아요가 추가되었습니다.', newFavorite })
+      );
     }
-
-    // 좋아요 추가
-    const new_favorite = await FavoriteArtwork.create({
-      user_id: user.id,
-      artwork_id: artworkId,
-    });
-
-    return res.status(status.SUCCESS.status).json(
-      response(status.SUCCESS, { new_favorite })
-    );
   } catch (error) {
     console.error('Error adding favorite artwork:', error);
     if (error instanceof BaseError) {

@@ -738,6 +738,11 @@
                             "type": "string",
                             "example": "Author Name",
                             "description": "작품 작가"
+                          },
+                          "is_liked": {
+                            "type": "boolean",
+                            "example": "true",
+                            "description": "유저의 좋아요 여부"
                           }
                         }
                       }
@@ -1518,8 +1523,8 @@
                   "example": true
                 },
                 "code": {
-                  "type": "string",
-                  "example": "2000"
+                  "type": "integer",
+                  "example": 2000
                 },
                 "message": {
                   "type": "string",
@@ -1528,8 +1533,14 @@
                 "result": {
                   "type": "object",
                   "properties": {
+                    "message": {
+                      "type": "string",
+                      "enum": ["좋아요가 추가되었습니다.", "좋아요가 취소되었습니다."],
+                      "example": "좋아요가 추가되었습니다."
+                    },
                     "new_favorite": {
                       "type": "object",
+                      "nullable": true,
                       "properties": {
                         "created_at": {
                           "type": "string",

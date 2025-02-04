@@ -2,6 +2,7 @@ import { Op, Sequelize } from 'sequelize';
 import Artwork from '../Artwork/ArtworkModel.js';
 import FavoriteArtwork from '../Favorite/FavoriteArtworkModel.js';
 import Author from '../Author/AuthorModel.js';
+import User from '../User/UserModel.js';
 import { response } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 
@@ -14,6 +15,14 @@ const formatNumber = (num) => {
 export const getArtworkList = async (req, res) => {
     try {
       const { themes, sizes, forms, sort, page = 1, pageSize = 16 } = req.query;
+
+      let userId = null;
+      if (req.user) {
+          const user = await User.findOne({ where: { email: req.user.email } });
+          if (user) {
+              userId = user.id;
+          }
+      }
   
       const whereClause = {};
   
@@ -87,12 +96,26 @@ export const getArtworkList = async (req, res) => {
         distinct: true,  
       }); 
 
+      let likedArtworks = [];
+      if (userId) {
+          const likedRecords = await FavoriteArtwork.findAll({
+              where: {
+                  user_id: userId,
+                  artwork_id: { [Op.in]: artworks.map(a => a.id) },
+              },
+              attributes: ['artwork_id'],
+          });
+          likedArtworks = likedRecords.map(record => record.artwork_id);
+      }
+
+
       // size 계산 후 추가
       const artworksWithSize = artworks.map(artwork => ({
           ...artwork.toJSON(),
           size: `${formatNumber(artwork.width)}cm * ${formatNumber(artwork.height)}cm`,
           author_name: artwork.author ? artwork.author.author_name : null, // author_name을 플랫하게 추가
           author: undefined, // author 객체를 제거
+          is_liked: likedArtworks.includes(artwork.id), // 해당 유저가 좋아요 눌렀는지 여부
       }));
 
   
