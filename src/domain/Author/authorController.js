@@ -73,12 +73,6 @@ export const getAuthors = async (req, res, next) => {
             };
         }
   
-    //   return res.status(200).json({
-    //     total: count,
-    //     totalPages: Math.ceil(count / limit),
-    //     currentPage: page,
-    //     authors: rows.map(author => author.id),
-    //   });
         return sendResponse(res, status.SUCCESS, {
             total: count,
             totalPages: Math.ceil(count / limit),
@@ -90,6 +84,35 @@ export const getAuthors = async (req, res, next) => {
       next(error);
     }
 };
+
+export const updateAuthorInfo = async (req, res) => {
+    try {
+        const { nickname, birth, address, author_image_url, introduction_image_url } = req.body;
+        const email = req.user.email;
+   
+        if (!nickname && !birth && !address && !author_image_url && !introduction_image_url) {
+            return sendResponse(res, status.AUTHOR_INFO_NOT_PROVIDED);
+        }
+
+        let userData = { email };
+        if (nickname) userData.nickname = nickname;
+        if (birth) userData.birth = birth;
+        if (address) userData.address = address;
+
+        const user = await User.userUpdate(userData);
+
+        let authorData = {};
+        if (author_image_url) authorData.author_image_url = author_image_url;
+        if (introduction_image_url) authorData.introduction_image_url = introduction_image_url;
+
+        const author = await Author.updateAuthorByUserId(user.id, authorData);
+        
+        return sendResponse(res, status.SUCCESS);
+    } catch (error) {
+        console.error('updateUserInfo 에러:', error);
+        return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+    }
+}
 
 export const getAuthorDetail = async (req, res, next) => {
     try {

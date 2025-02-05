@@ -43,6 +43,30 @@ class User extends Model {
       throw error;
     }
   }
+
+  static async userUpdate(userData) {
+    try {
+      const { email } = userData;
+
+      // 사용자 정보 업데이트 (닉네임, 생년월일, 주소)만 업데이트
+      let newData = {};
+      if (userData.nickname) newData.nickname = userData.nickname;
+      if (userData.birth) newData.birth = userData.birth;
+      if (userData.address) newData.address = userData.address;
+      
+      await User.update(newData, {
+        where: { email },
+      });
+
+      const updatedUser = await User.findOne({
+        where: { email },
+      });
+
+      return updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 // 모델 정의

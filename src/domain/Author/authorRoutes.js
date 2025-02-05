@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateBankInfo, getAuthorInfo, updateAuthorProfile, getAuthors, getAuthorDetail} from './authorController.js';
+import { updateBankInfo, getAuthorInfo, updateAuthorProfile, getAuthors, getAuthorDetail, updateAuthorInfo} from './authorController.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -24,10 +24,14 @@ router.get('/list', verifyToken, async (req, res, next) => {
   await getAuthors(req, res, next);
 });
 
-
 //작가 상세 조회 API
 router.get('/:authorId', verifyToken, async (req, res, next) => {
   await getAuthorDetail(req, res, next);
+});
+
+//작가 계정 정보 수정 API
+router.patch('/update', verifyToken, async (req, res, next) => {
+  await updateAuthorInfo(req, res);
 });
 
 export default router;

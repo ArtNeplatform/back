@@ -58,6 +58,19 @@ class Author extends Model {
     }
   }
 
+  // 유저아이디 기반 작가 수정
+  static async updateAuthorByUserId(user_id, authorData) {
+    try {
+      const user = await Author.update(authorData, {
+        where: { user_id },
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // 작가 삭제
   static async deleteAuthor(authorId) {
     try {
