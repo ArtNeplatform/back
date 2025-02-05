@@ -1654,6 +1654,11 @@
                       "size": {
                         "type": "string",
                         "example": "50cm*70cm"
+                      },
+                      "is_liked": {
+                        "type": "boolean",
+                        "example": "true",
+                        "description": "유저의 좋아요 여부"
                       }
                     }
                   }
