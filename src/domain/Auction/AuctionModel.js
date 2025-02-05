@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../sequelize.js';
 import Artwork from '../Artwork/ArtworkModel.js';
+import Payment from '../Payment/PaymentModel.js';
 
 class Auction extends Model {}
 Auction.init(

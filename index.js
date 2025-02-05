@@ -11,7 +11,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 
 import { initializeWebSocket } from './config/webSocket.js';
-import { verifyToken,getTempTokenByUserId } from './middlewares/authMiddleware.js';
+import { verifyToken,getTempTokenByEmail } from './middlewares/authMiddleware.js';
 import authRoutes from './src/domain/Authentication/authRoutes.js';
 import authorRoutes from './src/domain/Author/authorRoutes.js';
 import auctionrRoutes from './src/domain/Auction/auctionRoutes.js';
@@ -19,7 +19,11 @@ import './src/domain/sequelizeRelations.js'; // 관계 설정
 import userSpaceRoutes from './src/domain/User/userSpaceRoutes.js'; 
 import artworkRoutes from './src/domain/Artwork/artworkCreateRoutes.js';
 import artworkDetailRoutes from './src/domain/Artwork/artworkDetailRoutes.js';
+import artworkManagementRoutes from './src/domain/Author/authorManagementRoutes.js';
+import userArtworkRoutes from './src/domain/User/userArtworkRoutes.js';
+import artworkList from './src/domain/Artwork/artworkListRoutes.js';
 import mainHomeRoutes from './src/domain/Artwork/mainHomeRoutes.js';
+import userRoutes from './src/domain/User/userRoutes.js';
 import exhibitionRoutes from './src/domain/Exhibition/exhibitionRoutes.js';
 
 const app = express();
@@ -52,14 +56,18 @@ app.use(cors({
   });
 
   //테스트용 임시토큰발급(삭제예정)
-  app.post('/temp-token/:userId',getTempTokenByUserId);
+  app.post('/temp-token/:email',getTempTokenByEmail);
 
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
   app.use('/api/author', authorRoutes); // 작가
+  app.use('/api/user', userRoutes); // 유저
   app.use('/api/',mainHomeRoutes ); // 작가
   app.use('/api/auction', auctionrRoutes); // 경매
+  app.use('/api', artworkManagementRoutes); // 작가 작품/경매/전시 조회
+  app.use('/api', userArtworkRoutes); // 작품 구매자 구매 작품 조회
+  app.use('/api', artworkList); // 작품 리스트 조회회
 
   //웹소켓
   initializeWebSocket(app);
