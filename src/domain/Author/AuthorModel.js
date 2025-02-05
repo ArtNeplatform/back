@@ -1,7 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import sequelize from '../sequelize.js'; 
 import User from '../User/UserModel.js'; 
-import Artwork from '../Artwork/ArtworkModel.js'; 
 
 class Author extends Model {
   // 작가 생성
@@ -26,6 +25,23 @@ class Author extends Model {
     }
   }
 
+  // 이메일로 작가 조회
+  static async findAuthorByEmail(email) {
+    try {
+      const user = await User.findOne({
+        where: { email },
+      });
+
+      const author = await Author.findOne({
+        where: { user_id: user.id },
+      });
+
+      return author;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // 작가 수정
   static async updateAuthor(authorId, updateData) {
     try {
@@ -42,6 +58,19 @@ class Author extends Model {
     }
   }
 
+  // 유저아이디 기반 작가 수정
+  static async updateAuthorByUserId(user_id, authorData) {
+    try {
+      const user = await Author.update(authorData, {
+        where: { user_id },
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // 작가 삭제
   static async deleteAuthor(authorId) {
     try {
@@ -53,6 +82,32 @@ class Author extends Model {
         return { message: 'Author deleted successfully' };
       }
       throw new Error('Author not found');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getArtworkConut(authorId) {
+    try {
+      const Artwork = await import('../Artwork/ArtworkModel.js').then(m => m.default);
+      const count = await Artwork.count({
+        where: { author_id: authorId },
+      });
+
+      return count;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getExhibitionCount(authorId) {
+    try {
+      const Exhibition = await import('../Exhibition/ExhibitionModel.js').then(m => m.default);
+      const count = await Exhibition.count({
+        where: { author_id: authorId,},
+      });
+
+      return count;
     } catch (error) {
       throw error;
     }
@@ -78,6 +133,8 @@ Author.init(
       bank_name: { type: DataTypes.STRING },
       account_holder: { type: DataTypes.STRING },
       account_number: { type: DataTypes.STRING },
+      popularity: { type: DataTypes.INTEGER },
+      recent_work_at: { type: DataTypes.DATE },
       created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     },

@@ -72,14 +72,14 @@ export const createUserSpace = async (req, res) => {
     const imageUrl = await uploadImageToS3(image);
 
     // 유저 공간 생성
-    const newUserSpace = await UserSpace.create({
+    const new_userspace = await UserSpace.create({
       user_id: user.id,
       name,
       image_url: imageUrl,
       area,
     });
 
-    return res.status(status.SUCCESS.status).json(response(status.SUCCESS, { newUserSpace }));
+    return res.status(status.SUCCESS.status).json(response(status.SUCCESS, { new_userspace }));
   } catch (error) {
     console.error('Error creating user space:', error);
     if (error instanceof BaseError) {

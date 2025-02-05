@@ -5,7 +5,7 @@
     "description": "ArtNe 서비스에 사용되는 다양한 API를 테스트합니다.",
     "version": "1.0.0"
   },
-  "host": "localhost:3000",
+  "host": "localhost:5000",
   "servers": [
     {
       "url": "http://localhost:3306"
@@ -51,12 +51,12 @@
         }
       }
     },
-    "/temp-token/{userId}": {
+    "/temp-token/{email}": {
       "post": {
         "description": "",
         "parameters": [
           {
-            "name": "userId",
+            "name": "email",
             "in": "path",
             "required": true,
             "type": "string"
@@ -179,7 +179,12 @@
     },
     "/api/userspace": {
       "post": {
-        "description": "",
+        "tags": ["유저"],
+        "summary": "내 공간 등록",
+        "description": "사용자가 공간을 생성할 떄 이름, 공간의 크기, 이미지 파일을 업로드할 수 있습니다.",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "authorization",
@@ -187,34 +192,150 @@
             "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
+            "name": "name",
+            "in": "formData",
+            "description": "공간의 이름",
+            "required": true,
+            "type": "string",
+            "example": "공간명"
+          },
+          {
+            "name": "area",
+            "in": "formData",
+            "description": "공간의 크기",
+            "required": true,
+            "type": "string",
+            "example": "400"
+          },
+          {
+            "name": "images",
+            "in": "formData",
+            "description": "업로드할 이미지 파일(하나만 가능)",
+            "required": true,
+            "type": "file"
+          }          
+        ],
+        "responses": {
+          "200": {
+            "description": "사용자 공간 생성 성공",
             "schema": {
               "type": "object",
               "properties": {
-                "name": {
-                  "example": "any"
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": true
                 },
-                "area": {
-                  "example": "any"
+                "code": {
+                  "type": "string",
+                  "example": "2000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "new_userspace": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 24
+                        },
+                        "user_id": {
+                          "type": "integer",
+                          "example": 11
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "집"
+                        },
+                        "image_url": {
+                          "type": "string",
+                          "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/32ae57f3-2413-446e-a6a8-f3e8b4841a2e.jpg"
+                        },
+                        "area": {
+                          "type": "string",
+                          "example": "20"
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-02-03T18:25:35.223Z"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-02-03T18:25:35.223Z"
+                        }
+                      }
+                    }
+                  }
+                }
+                                
+              }
+            }
+          },
+          "400": {
+            "description": "잘못된 요청 (필수 데이터 누락, 파일 오류 등)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON001"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "잘못된 요청입니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Required fields are missing."
                 }
               }
             }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Bad Request"
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/artworks": {
       "post": {
-        "description": "",
+        "tags":["작품"],
+        "summary": "작품 등록하기",
+        "description": "작가가 작품 정보를 입력하고 이미지 파일을 업로드 하여 새로운 작품을 생성합니다.",
+        "consumes": [
+          "multipart/form-data"
+        ],
         "parameters": [
           {
             "name": "authorization",
@@ -222,70 +343,453 @@
             "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "theme": {
-                  "example": "any"
-                },
-                "form": {
-                  "example": "any"
-                },
-                "title": {
-                  "example": "any"
-                },
-                "year": {
-                  "example": "any"
-                },
-                "genre": {
-                  "example": "any"
-                },
-                "material": {
-                  "example": "any"
-                },
-                "height": {
-                  "example": "any"
-                },
-                "width": {
-                  "example": "any"
-                },
-                "number": {
-                  "example": "any"
-                },
-                "frame": {
-                  "example": "any"
-                },
-                "description": {
-                  "example": "any"
-                },
-                "information": {
-                  "example": "any"
-                }
-              }
+            "name": "theme",
+            "in": "formData",
+            "description": "작품의 테마(필수)",
+            "required": true,
+            "type": "string",
+            "example": "풍경"
+          },
+          {
+            "name": "form",
+            "in": "formData",
+            "description": "작품의 형태(필수)",
+            "required": true,
+            "type": "string",
+            "example": "원형"
+          },
+          {
+            "name": "title",
+            "in": "formData",
+            "description": "작품의 제목(필수)",
+            "required": true,
+            "type": "string",
+            "example": "고요한 물결"
+          },
+          {
+            "name": "year",
+            "in": "formData",
+            "description": "작품의 제작 연도",
+            "required": false,
+            "type": "integer",
+            "example": 2025
+          },
+          {
+            "name": "genre",
+            "in": "formData",
+            "description": "작품의 장르",
+            "required": false,
+            "type": "string",
+            "example": "판화"
+          },
+          {
+            "name": "material",
+            "in": "formData",
+            "description": "작품의 재료",
+            "required": false,
+            "type": "string",
+            "example": "유채"
+          },
+          {
+            "name": "height",
+            "in": "formData",
+            "description": "작품의 높이 (cm)",
+            "required": false,
+            "type": "number",
+            "format": "float",
+            "example": 120
+          },
+          {
+            "name": "width",
+            "in": "formData",
+            "description": "작품의 너비 (cm)",
+            "required": false,
+            "type": "number",
+            "format": "float",
+            "example": 90.5
+          },
+          {
+            "name": "number",
+            "in": "formData",
+            "description": "작품의 호수",
+            "required": false,
+            "type": "integer",
+            "example": 30
+          },
+          {
+            "name": "frame",
+            "in": "formData",
+            "description": "작품의 액자",
+            "required": false,
+            "type": "string",
+            "example": "원목 프레임"
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "description": "작품에 대한 설명",
+            "required": false,
+            "type": "string",
+            "example": "잔잔한 호수의 물결을 만들어내는 고요함과 평온함을 표현한 작품입니다. 이 작품은 물의 부드러운 흐름과 빛이 반사되는 순간을 추상적인 곡선과 파스텔 톤의 색상으로 담아냈습니다."
+          },
+          {
+            "name": "images",
+            "in": "formData",
+            "description": "작품 이미지 (최소 하나의 이미지 필요)",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "file"
             }
           }
         ],
         "responses": {
+          "200": {
+            "description": "작품이 성공적으로 생성되었습니다.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess":{
+                  "type": "boolean",
+                  "example": true
+                },
+                "code": {
+                  "type": "string",
+                  "example": "2000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "new_artwork": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 28
+                        },
+                        "author_id": {
+                          "type": "integer",
+                          "example": 1
+                        },
+                        "theme": {
+                          "type": "string",
+                          "example": "동물"
+                        },
+                        "form": {
+                          "type": "string",
+                          "example": "원형"
+                        },
+                        "thumbnail_image_url": {
+                          "type": "string",
+                          "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/5af191e4-4c94-4c47-a22c-b3e1da7cffb3.jpg"
+                        },
+                        "title": {
+                          "type": "string",
+                          "example": "토끼"
+                        },
+                        "year": {
+                          "type": "string",
+                          "example": "2025"
+                        },
+                        "genre": {
+                          "type": "string",
+                          "example": "회화"
+                        },
+                        "material": {
+                          "type": "string",
+                          "example": "캔버스에 유채"
+                        },
+                        "height": {
+                          "type": "string",
+                          "example": "30"
+                        },
+                        "width": {
+                          "type": "string",
+                          "example": "41.5"
+                        },
+                        "number": {
+                          "type": "string",
+                          "example": "12"
+                        },
+                        "frame": {
+                          "type": "string",
+                          "example": "철제 프레임"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "이것은 작품 설명입니다."
+                        },
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-02-03T18:32:57.510Z"
+                        },
+                        "updated_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-02-03T18:32:57.510Z"
+                        }
+                      }
+                    },
+                    "artwork_images": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "artwork_id": {
+                            "type": "integer",
+                            "example": 28
+                          },
+                          "image_url": {
+                            "type": "string",
+                            "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/5af191e4-4c94-4c47-a22c-b3e1da7cffb3.jpg"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
-            "description": "Bad Request"
+            "description": "잘못된 요청 (필수 데이터 누락, 파일 오류 등)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON001"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "잘못된 요청입니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Required fields are missing."
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["작품"],
+        "summary": "작품 리스트 조회",
+        "description": "필터와 정렬과 함께 작품 리스트를 조회합니다.",
+        "parameters": [
+          {
+            "name": "themes",
+            "in": "query",
+            "type": "string",
+            "example": "동물,인물",
+            "description": "다중 선택 가능(콤마로 구분)"
+          },
+          {
+            "name": "sizes",
+            "in": "query",
+            "type": "string",
+            "example" : "~30호,1~10호,100호+",
+            "description": "다중 선택 가능(콤마로 구분)"
+          },
+          {
+            "name": "forms",
+            "in": "query",
+            "type": "string",
+            "example": "원형",
+            "description": "다중 선택 가능(콤마로 구분)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "type": "string",
+            "example": "latest",
+            "description": "latest(최신순), popular(인기순), 디폴트는 랜덤순"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "example": "1"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "type": "string",
+            "example" : "16"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "작품 리스트",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "code": {
+                  "type": "string",
+                  "example": "2000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "example": 20,
+                      "description": "총 작품 개수"
+                    },
+                    "page": {
+                      "type": "integer",
+                      "example": 1,
+                      "description": "현재 페이지 번호"
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "example": 16,
+                      "description": "페이지당 작품 수"
+                    },
+                    "artworks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 9,
+                            "description": "작품 ID"
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "작품 제목",
+                            "description": "작품 제목"
+                          },
+                          "thumbnail_image_url": {
+                            "type": "string",
+                            "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/ece6c176-ebcc-44ff-afac-7c077d2f2fa0.jpg",
+                            "description": "작품의 썸네일 이미지"
+                          },
+                          "size": {
+                            "type": "string",
+                            "example": "10cm * 10.34cm",
+                            "description": "작품의 크기"
+                          },
+                          "width": {
+                            "type": "number",
+                            "example": 10.00,
+                            "description": "작품의 가로 크기"
+                          },
+                          "height": {
+                            "type": "number",
+                            "example": 10.34,
+                            "description": "작품의 세로 크기"
+                          },
+                          "like_count": {
+                            "type": "integer",
+                            "example": 0,
+                            "description": "좋아요 개수"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-01-27T06:54:17.000Z",
+                            "description": "작품 생성 시간"
+                          },
+                          "author_name": {
+                            "type": "string",
+                            "example": "Author Name",
+                            "description": "작품 작가"
+                          },
+                          "is_liked": {
+                            "type": "boolean",
+                            "example": "true",
+                            "description": "유저의 좋아요 여부"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/artworks/{artworkId}": {
       "get": {
-        "description": "",
+        "tags": ["작품"],
+        "summary": "작품 상세 조회",
+        "description": "작품소개, 작가소개, 다른작품 정보를 포함한 작품 상세 조회 페이지입니다.",
         "parameters": [
           {
             "name": "artworkId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "type": "integer"
           },
           {
             "name": "authorization",
@@ -294,14 +798,203 @@
           }
         ],
         "responses": {
-          "400": {
-            "description": "Bad Request"
+          "200": {
+            "description": "Artwork details successfully retrieved.",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "code": {
+                  "type": "string",
+                  "example": "2000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "fixed_info": {
+                        "type": "object",
+                        "properties": {
+                          "author_name": {
+                            "type": "string",
+                            "example": "John Doe"
+                          },
+                          "artwork_title": {
+                            "type": "string",
+                            "example": "The Great Artwork"
+                          },
+                          "artwork_image": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "example": "https://example.com/image1.jpg"
+                            }
+                          },
+                          "year": {
+                            "type": "integer",
+                            "example": 2022
+                          },
+                          "dimensions": {
+                            "type": "string",
+                            "example": "50 x 70 cm"
+                          },
+                          "material": {
+                            "type": "string",
+                            "example": "Oil on Canvas"
+                          },
+                          "size": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "category": {
+                            "type": "string",
+                            "example": "Abstract"
+                          },
+                          "genre": {
+                            "type": "string",
+                            "example": "Modern Art"
+                          }
+                        }
+                      },
+                      "tab_data": {
+                        "type": "object",
+                        "properties": {
+                          "description": {
+                            "type": "string",
+                            "example": "This is a beautiful artwork created in 2022."
+                          },
+                          "userspace": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "userspace_id": {
+                                  "type": "integer",
+                                  "example": 11
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "example": "Art Gallery A"
+                                },
+                                "image_url": {
+                                  "type": "string",
+                                  "example": "https://example.com/gallery.jpg"
+                                },
+                                "area": {
+                                  "type": "string",
+                                  "example": "New York"
+                                }
+                              }
+                            }
+                          },
+                          "author_id": {
+                            "type": "integer",
+                            "example": 123
+                          },
+                          "author_name": {
+                            "type": "string",
+                            "example": "John Doe"
+                          },
+                          "author_image": {
+                            "type": "string",
+                            "example": "https://example.com/author.jpg"
+                          },
+                          "work_style": {
+                            "type": "string",
+                            "example": "Realism"
+                          },
+                          "artwork_count": {
+                            "type": "integer",
+                            "example": 10
+                          },
+                          "exhibition_count": {
+                            "type": "integer",
+                            "example": 5
+                          },
+                          "other_artworks": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "integer",
+                                  "example": 124
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "example": "Another Artwork"
+                                },
+                                "thumbnail": {
+                                  "type": "string",
+                                  "example": "https://example.com/thumbnail.jpg"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
+
           "404": {
-            "description": "Not Found"
+            "description": "작품을 찾을 수 없음",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON005"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "요청한 페이지를 찾을 수 없습니다. 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Artwork not found."
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
           }
         }
       }
@@ -412,58 +1105,266 @@
         }
       }
     },
-    "/api/auction/available-artwork": {
-      "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
-          }
+   "/api/auction/available-artworks": {
+    "get": {
+      "tags": ["경매"],
+      "summary": "경매 가능 작품 조회",
+      "description": "작가가 경매에 등록할 수 있는 작품 목록을 조회하는 API 입니다.(현재 경매 진행중 X 완료 X인 작품)",
+      "parameters": [
+        {
+          "name": "authorization",
+          "in": "header",
+          "type": "string",
+          "required": true,
+          "description": "인증 토큰"
         }
-      }
-    },
-    "/api/auction/register": {
-      "post": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "authorization",
-            "in": "header",
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "artwork_id": {
-                  "example": "any"
-                },
-                "start_price": {
-                  "example": "any"
-                },
-                "end_time": {
-                  "example": "any"
+      ],
+      "responses": {
+        "200": {
+          "description": "경매 가능 작품 조회 성공",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "2000"
+              },
+              "message": {
+                "type": "string",
+                "example": "success!"
+              },
+              "result": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "artwork_id": {
+                      "type": "integer",
+                      "example": 45
+                    },
+                    "title": {
+                      "type": "string",
+                      "example": "산수화"
+                    },
+                    "thumbnail_image_url": {
+                      "type": "string",
+                      "example": "https://artwork-image.s3.ap-northeast-2.amazonaws.com/example.jpg"
+                    }
+                  }
                 }
               }
             }
           }
-        ],
-        "responses": {
-          "default": {
-            "description": ""
+        },
+        "404": {
+          "description": "작가 정보가 없거나 등록 가능한 작품이 없음",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "AUTHOR4002"
+              },
+              "message": {
+                "type": "string",
+                "example": "작가 정보가 없습니다."
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "서버 내부 오류",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON000"
+              },
+              "message": {
+                "type": "string",
+                "example": "서버 에러, 관리자에게 문의 바랍니다."
+              }
+            }
           }
         }
       }
-    },
+    }
+  },
+  "/api/auction/register": {
+    "post": {
+      "tags": ["경매"],
+      "summary": "경매 등록",
+      "description": "작가가 작품을 새로운 경매로 등록하는 API 입니다..",
+      "parameters": [
+        {
+          "name": "authorization",
+          "in": "header",
+          "type": "string",
+          "required": true,
+          "description": "인증 토큰"
+        },
+        {
+          "name": "auctionData",
+          "in": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "artwork_id": {
+                "type": "integer",
+                "example": 12
+              },
+              "start_price": {
+                "type": "number",
+                "example": 50000
+              },
+              "end_time": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2025-02-10T18:00:00.000Z"
+              }
+            }
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "경매 등록 성공",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": true
+              },
+              "code": {
+                "type": "string",
+                "example": "2000"
+              },
+              "message": {
+                "type": "string",
+                "example": "success!"
+              },
+              "result": {
+                "type": "object",
+                "properties": {
+                  "auction_id": {
+                    "type": "integer",
+                    "example": 101
+                  },
+                  "start_time": {
+                    "type": "string",
+                    "example": "2025-02-01 14:00:00"
+                  },
+                  "end_time": {
+                    "type": "string",
+                    "example": "2025-02-10 18:00:00"
+                  },
+                  "start_price": {
+                    "type": "number",
+                    "example": 50000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "잘못된 요청",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON001"
+              },
+              "message": {
+                "type": "string",
+                "example": "잘못된 요청입니다."
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "권한 오류",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON002"
+              },
+              "message": {
+                "type": "string",
+                "example": "권한이 잘못되었습니다."
+              }
+            }
+          }
+        },
+        "409": {
+          "description": "중복된 경매 등록",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "AUCTION4001"
+              },
+              "message": {
+                "type": "string",
+                "example": "이미 진행 중인 경매가 있습니다."
+              }
+            }
+          }
+        },
+        "500": {
+          "description": "서버 내부 오류",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "isSuccess": {
+                "type": "boolean",
+                "example": false
+              },
+              "code": {
+                "type": "string",
+                "example": "COMMON000"
+              },
+              "message": {
+                "type": "string",
+                "example": "서버 에러, 관리자에게 문의 바랍니다."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
     "/api/auction/bid": {
       "post": {
         "description": "",
@@ -514,6 +1415,23 @@
       }
     },
     "/api/auction/{auctionId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "auctionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },"/api/auction/{auctionId}": {
       "get": {
         "description": "",
         "parameters": [
@@ -645,6 +1563,411 @@
           },
           "500": { 
             "description": "Internal Server Error" 
+          }
+        }
+      }
+    },
+    "/api/author/artworks-exhibitions": {
+      "get": {
+        "tags": ["작가"],
+        "summary": "작가 작품/전시 조회",
+        "description": "작가가 자신의 작품, 경매 중인 작품, 진행 중인 전시를 조회할 수 있습니다.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "code": {
+                  "type": "string",
+                  "example": "2000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "author": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 1
+                        }
+                      }
+                    },
+                    "artworks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "작품 제목"
+                          },
+                          "thumbnail_image_url": {
+                            "type": "string",
+                            "example": "http://example.com/thumbnail.jpg"
+                          }
+                        }
+                      }
+                    },
+                    "auction_artworks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "auction_id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "auction_period": {
+                            "type": "string",
+                            "example": "2025. 1. 1 - 2025. 1. 10"
+                          },
+                          "artwork": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer",
+                                "example": 1
+                              },
+                              "title": {
+                                "type": "string",
+                                "example": "모나리자"
+                              },
+                              "thumbnail_image_url": {
+                                "type": "string",
+                                "example": "http://example.com/auction-thumbnail.jpg"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "exhibitions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "별이 빛나는 밤에"
+                          },
+                          "image_url": {
+                            "type": "string",
+                            "example": "http://example.com/exhibition-image.jpg"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON005"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "요청한 페이지를 찾을 수 없습니다. 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Author not found."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/purchased-artworks": {
+      "get": {
+        "tags": ["유저"],
+        "summary": "작품 구매자 구매 작품 조회",
+        "description": "로그인한 사용자의 구매 작품을 조회합니다.",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "작품 구매자 구매 작품 리스트",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "code": {
+                  "type": "string",
+                  "example": "2000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "artwork_id": {
+                        "type": "integer",
+                        "example": 11
+                      },
+                      "author_name": {
+                        "type": "string",
+                        "example": "김작가"
+                      },
+                      "title": {
+                        "type": "string",
+                        "example": "모나리자"
+                      },
+                      "size": {
+                        "type": "string",
+                        "example": "50cm*70cm"
+                      },
+                      "is_liked": {
+                        "type": "boolean",
+                        "example": "true",
+                        "description": "유저의 좋아요 여부"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "구매한 작품 없을 때",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON005"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "요청한 페이지를 찾을 수 없습니다. 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "No purchased artworks found."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/artworks/{artworkId}/like": {
+      "post": {
+        "tags": ["작품"],
+        "summary": "작품 좋아요",
+        "parameters": [
+          {
+            "name": "artworkId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "code": {
+                  "type": "integer",
+                  "example": 2000
+                },
+                "message": {
+                  "type": "string",
+                  "example": "success!"
+                },
+                "result": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "enum": ["좋아요가 추가되었습니다.", "좋아요가 취소되었습니다."],
+                      "example": "좋아요가 추가되었습니다."
+                    },
+                    "new_favorite": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "created_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2025-02-03T19:29:08.485Z"
+                        },
+                        "id": {
+                          "type": "integer",
+                          "example": 9
+                        },
+                        "user_id": {
+                          "type": "integer",
+                          "example": 11
+                        },
+                        "artwork_id": {
+                          "type": "string",
+                          "example": "20"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON001"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "잘못된 요청입니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "You have already liked this artwork."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 내부 오류",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "isSuccess": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "code": {
+                  "type": "string",
+                  "example": "COMMON000"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "서버 에러, 관리자에게 문의 바랍니다."
+                },
+                "result": {
+                  "type": "string",
+                  "example": "Internal server error."
+                }
+              }
+            }
           }
         }
       }

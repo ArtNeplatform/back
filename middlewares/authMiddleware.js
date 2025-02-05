@@ -1,5 +1,7 @@
 //authMiddleware.js
 import jwt from 'jsonwebtoken';
+import { sendResponse } from '../config/response.js';
+import { status } from '../config/response.status.js';
 
 export const verifyToken = (req, res, next) => {
     try {
@@ -31,20 +33,17 @@ export const verifyToken = (req, res, next) => {
 };
 
 //임시토큰발급(삭제예정)
-export const getTempTokenByUserId = (req, res, next) => {
+export const getTempTokenByEmail = (req, res, next) => {
     try {
-      const { userId } = req.params;
+      const { email } = req.params;
 
       const token = jwt.sign(
-        { userId }, 
+        { email }, 
         process.env.JWT_SECRET, 
         { expiresIn: '30d' }
       );
-  
-      return res.status(200).json({
-        success: true,
-        token,
-      });
+      return sendResponse(res, status.SUCCESS, token);
+
     } catch (error) {
       next(error);
     }

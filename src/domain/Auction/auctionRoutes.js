@@ -1,5 +1,6 @@
 import express from 'express';
-import {getAvailableArtworks, getAuctionList, getAuctionDetail, registerAuction ,bidAuction } from './auctionController.js';
+import {getAvailableArtworks, getAuctionList, getAuctionDetail, registerAuction ,bidAuction, } from './auctionController.js';
+import { addFavoriteAuction, removeFavoriteAuction } from './auctionLikeController.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -21,14 +22,29 @@ router.post('/bid', verifyToken, async (req, res) => {
 
 // 경매 리스트 조회 API
 router.get('/', async (req, res) => {
-    await getAuctionList(req, res);
-});
-
+    if (req.headers.authorization) {
+      verifyToken(req, res, async () => {
+        await getAuctionList(req, res);
+      });
+    } else {
+      await getAuctionList(req, res);
+    }
+  });
+  
 // 경매 상세 조회 API
-router.get('/:auctionId', async (req, res) => {
+router.get('/:auction_id', async (req, res) => {
     await getAuctionDetail(req, res);
 });
 
+// 경매 좋아요 API
+router.post('/:auction_id/like', verifyToken, async (req, res) => {
+    await addFavoriteAuction(req, res);
+});
+
+// 경매 좋아요 취소 API
+router.post('/:auction_id/unlike', verifyToken, async (req, res) => {
+    await removeFavoriteAuction(req, res);
+});
 
 
 
