@@ -4,6 +4,7 @@ import Author from '../Author/AuthorModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
 import Payment from '../Payment/PaymentModel.js';
 import Auction from '../Auction/AuctionModel.js';
+import FavoriteArtwork from '../Favorite/FavoriteArtworkModel.js';
 import { response } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 
@@ -55,8 +56,22 @@ export const getUserPurchasedArtworks = async (req, res) => {
     });
 
     if (!payments.length) {
-      return res.status(404).json(response(status.NOT_FOUND, 'No purchased artworks found.'));
+      return res.status(200).json(response(status.SUCCESS, [])); 
     }
+
+    // 사용자가 좋아요한 작품 조회
+    let likedArtworks = [];
+    if (userData.id) {
+        const likedRecords = await FavoriteArtwork.findAll({
+            where: {
+                user_id: userData.id,
+                artwork_id: { [Op.in]: payments.map(p => p.auction.artwork.id) },
+            },
+            attributes: ['artwork_id'],
+        });
+        likedArtworks = likedRecords.map(record => record.artwork_id);
+    }
+
 
     // 응답 데이터 구성
     const responseData = payments.map((payment) => ({
@@ -64,6 +79,7 @@ export const getUserPurchasedArtworks = async (req, res) => {
       author_name: payment.auction.artwork.author.author_name,
       title: payment.auction.artwork.title,
       size: `${formatNumber(payment.auction.artwork.width)}cm*${formatNumber(payment.auction.artwork.height)}cm`,
+      is_liked: likedArtworks.includes(payment.auction.artwork.id), // 해당 유저가 좋아요 눌렀는지 여부
     }));
 
     return res.status(200).json(response(status.SUCCESS, responseData));
