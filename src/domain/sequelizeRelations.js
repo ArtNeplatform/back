@@ -6,6 +6,7 @@ import User from './User/UserModel.js';
 import Payment from './Payment/PaymentModel.js';
 import FavoriteArtwork from './Favorite/FavoriteArtworkModel.js'; 
 import FavoriteAuction from './Favorite/FavoriteAuctionModel.js';
+import Exhibition from './Exhibition/ExhibitionModel.js';
 
 Author.belongsTo(User, { foreignKey: 'user_id' }); 
 Artwork.belongsTo(Author, { foreignKey: 'author_id', as: 'author' });
@@ -20,3 +21,7 @@ Payment.belongsTo(User, { foreignKey: 'user_id' });
 Artwork.hasMany(FavoriteArtwork, { foreignKey: 'artwork_id', as: 'favorites' });
 FavoriteAuction.belongsTo(User, { foreignKey: 'user_id' });
 FavoriteAuction.belongsTo(Auction, { foreignKey: 'auction_id' });
+Author.hasMany(Exhibition, { foreignKey: 'author_id' });
+Exhibition.belongsTo(Author, { foreignKey: 'author_id' });
+Exhibition.hasMany(Artwork, { foreignKey: 'exhibition_id', as: 'artworks' });
+Artwork.belongsTo(Exhibition, { foreignKey: 'exhibition_id', as: 'exhibition' });
