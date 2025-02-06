@@ -49,7 +49,8 @@ app.use(cors({
   app.use(express.json()); // JSON 요청을 처리하기 위한 미들웨어
 
   // 전시
-  app.use('/api', exhibitionRoutes);
+  //app.use('/api', exhibitionRoutes);
+
   // 인증 필요 route 정의 예시
   // 실제로는 route 파일로 분리하여 사용
   app.get('/ping', verifyToken, (req, res) => {

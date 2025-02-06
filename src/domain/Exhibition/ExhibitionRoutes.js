@@ -1,5 +1,5 @@
 import express from 'express';
-import Exhibition from '../Exhibition/ExhibitionModel.js'; // Exhibition 모델 불러오기
+import Exhibition from './ExhibitionModel.js'; // Exhibition 모델 불러오기
 import Artwork from '../Artwork/Artwork.js';  // 작가의 작품 리스트 가져오기
 import uploadMiddleware from '../../../config/uploadMiddleware.js';
 
