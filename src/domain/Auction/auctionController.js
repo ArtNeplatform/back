@@ -102,13 +102,13 @@ export const getAvailableArtworks = async (req, res) => {
 // 경매 등록
 export const registerAuction = async (req, res) => {
   try {
-    const { artwork_id, start_price, end_time } = req.body;
+    const { artwork_id, start_price } = req.body;
 
     const artwork = await Artwork.findOne({ where: { id: artwork_id } });
     if (!artwork) return sendResponse(res, status.ARTWORK_NOT_FOUND);
 
     const currentTime = getCurrentKST();
-    const inputEndTime = DateTime.fromFormat(convertToKST(new Date(end_time)), 'yyyy-MM-dd HH:mm:ss', { zone: 'Asia/Seoul' });
+    const inputEndTime = currentTime.plus({ days: 7 });
 
     if (!inputEndTime.isValid) return sendResponse(res, status.INVALID_END_TIME);
     if (inputEndTime <= currentTime) return sendResponse(res, status.INVALID_END_TIME);
