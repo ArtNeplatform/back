@@ -1,7 +1,7 @@
 // Swagger 설정 파일
 // const swaggerAutogen = require('swagger-autogen')({ openapi: '3.0.0' });
 import swaggerAutogen from 'swagger-autogen' 
-const PORT = 3306; // 사용하는 포트 번호에 맞게 변경
+const PORT = process.env.PORT || 5000; 
 
 const options = {
   info: {
@@ -13,10 +13,10 @@ const options = {
       url: `http://localhost:${PORT}`, // base URL
     },
   ],
-  schemes: ['http'], // 사용할 프로토콜
+  schemes: ['https'], // 사용할 프로토콜
   securityDefinitions: { // JWT 인증을 위한 설정
     bearerAuth: {
-      type: 'http',
+      type: 'https',
       scheme: 'bearer',
       in: 'header',
       bearerFormat: 'JWT',
