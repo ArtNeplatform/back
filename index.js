@@ -33,7 +33,8 @@ process.env.TZ = 'Asia/Seoul';
 
 
 app.use(cors({
-    origin: 'http://localhost:5173',  // 필요한 프론트엔드 URL 추후에 연결 후  설정
+    origin: '*', 
+    //origin: 'http://localhost:5173',  // 필요한 프론트엔드 URL 추후에 연결 후  설정
     credentials: true
   }));
   app.use(express.json());
