@@ -10,13 +10,13 @@ const options = {
   },
   servers: [
     {
-      url: `http://localhost:${PORT}`, // base URL
+      url: `http://localhost:5000`, // base URL
     },
   ],
-  schemes: ['https'], // 사용할 프로토콜
+  schemes: ['http'], // 사용할 프로토콜
   securityDefinitions: { // JWT 인증을 위한 설정
     bearerAuth: {
-      type: 'https',
+      type: 'http',
       scheme: 'bearer',
       in: 'header',
       bearerFormat: 'JWT',
