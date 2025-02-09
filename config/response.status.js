@@ -53,8 +53,8 @@ export const status = {
     // authentication err
     INVALID_SOCIAL_TYPE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUTH4002', message: '유효하지 않은 프로바이더 소셜 타입' },
     INVALID_ROLE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUTH4003', message: '유효하지 않은 계정 역할' },
-    TOKEN_INVALID : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTH4004", "message": "유효하지 않은 토큰입니다" },
-    TOKEN_EMPTY : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTH4005", "message": "토큰이 제공되지 않았습니다" },
+    TOKEN_INVALID : {status: StatusCodes.UNAUTHORIZED, "isSuccess": false, "code": "AUTH4004", "message": "유효하지 않은 토큰입니다" },
+    TOKEN_EMPTY : {status: StatusCodes.UNAUTHORIZED, "isSuccess": false, "code": "AUTH4005", "message": "토큰이 제공되지 않았습니다" },
 
 
 
