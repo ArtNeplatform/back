@@ -80,7 +80,7 @@ export const getAuthors = async (req, res, next) => {
             authorInfos: authorNameAndCounts
         });
     } catch (error) {
-      console.error('Error fetching authors:', error);
+      sendResponse(res, status.BAD_REQUEST);
       next(error);
     }
 };
@@ -149,7 +149,7 @@ export const getAuthorDetail = async (req, res, next) => {
     }
     catch (error) {
         console.error('Error fetching author detail:', error);
-        return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+        return sendResponse(res, status.AUTHOR_NOT_FOUND);
     }
 };
 
