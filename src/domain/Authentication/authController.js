@@ -123,6 +123,7 @@ export const signup = async (req, res, next) => {
         sendResponse(res, status.CREATED, { token, userInfo: user });
     }
     catch(error) {
+        console.log('회원가입 에러 발생 : ', error); 
         switch(error.message) {
             case 'PROVIDER_API_ERROR':
                 sendResponse(res, status.PROVIDER_API_ERROR);
