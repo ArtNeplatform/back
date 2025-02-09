@@ -9,7 +9,7 @@ export const updateUserInfo = async (req, res) => {
         const email = req.user.email;
    
         if (!nickname && !birth && !address) {
-            return sendResponse(res, status.BAD_REQUEST);
+            throw new Error('EMPTY_VALID_ATTRIBUTE');
         }
 
         let userData = { email };
@@ -22,7 +22,13 @@ export const updateUserInfo = async (req, res) => {
         return sendResponse(res, status.SUCCESS);
     } catch (error) {
         console.error('updateUserInfo 에러:', error);
-        return sendResponse(res, status.BAD_REQUEST);
+        switch(error.message) {
+            case 'EMPTY_VALID_ATTRIBUTE':
+                sendResponse(res, status.EMPTY_VALID_ATTRIBUTE);
+                break;
+            default:
+                sendResponse(res, status.BAD_REQUEST);
+        }
     }
 };
 
