@@ -9,6 +9,8 @@ import { response } from './config/response.js';
 import { status } from './config/response.status.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import morgan from 'morgan'; 
+import moment from 'moment'; 
 
 import { initializeWebSocket } from './config/webSocket.js';
 import { verifyToken,getTempTokenByEmail } from './middlewares/authMiddleware.js';
@@ -31,6 +33,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 process.env.TZ = 'Asia/Seoul';
 
+
+// 로그에 시간 포맷 추가
+morgan.format('custom', function(tokens, req, res) {
+  return `[${moment().utcOffset(9).format('YYYY-MM-DDTHH:mm:ss.SSS')}]: ${tokens.method(req, res)} ${tokens.url(req, res)} ${tokens.status(req, res)} ${tokens['response-time'](req, res)} ms`;
+});
+
+app.use(morgan('custom'));
 
 app.use(cors({
     origin: '*', 
