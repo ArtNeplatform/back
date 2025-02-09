@@ -4,6 +4,7 @@ import axios from 'axios';
 import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import User from '../User/UserModel.js';
+import Author from '../Author/AuthorModel.js';
 import { urlencoded } from 'express';
 
 dotenv.config();
@@ -81,7 +82,7 @@ export const googleOAuthRedirect = async (req, res, next) => {
 
 export const signup = async (req, res, next) => {
     try {
-        const { code, social_type } = req.body;
+        const { code, social_type, role } = req.body;
         console.log(req.body);
 
         const userInfo = {};
@@ -104,7 +105,18 @@ export const signup = async (req, res, next) => {
         
         Object.assign(userInfo, req.body);
 
-        const user = await User.createUser(userInfo);
+        let user;
+
+        if(role === 'BUYER') {
+            user = await User.createUser(userInfo);
+        }
+        else if(role === 'AUTHOR') {
+            user = await User.createUser(userInfo);
+            await Author.createAuthor(user);
+        }
+        else {
+            throw new Error('Invalid role');
+        }
 
         const token = await signToken(userInfo.email);
 
