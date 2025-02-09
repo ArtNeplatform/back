@@ -35,6 +35,6 @@ export const deleteUser = async (req, res) => {
         return sendResponse(res, status.SUCCESS);
     } catch (error) {
         console.error('deleteUser 에러:', error);
-        return sendResponse(res, status.INTERNAL_SERVER_ERROR, );
+        return sendResponse(res, status.BAD_REQUEST);
     }
 };
