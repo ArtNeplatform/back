@@ -9,7 +9,7 @@ export const updateUserInfo = async (req, res) => {
         const email = req.user.email;
    
         if (!nickname && !birth && !address) {
-            return sendResponse(res, status.USER_INFO_NOT_PROVIDED);
+            return sendResponse(res, status.BAD_REQUEST);
         }
 
         let userData = { email };

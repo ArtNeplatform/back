@@ -91,7 +91,7 @@ export const updateAuthorInfo = async (req, res) => {
         const email = req.user.email;
    
         if (!nickname && !birth && !address && !author_image_url && !introduction_image_url) {
-            return sendResponse(res, status.AUTHOR_INFO_NOT_PROVIDED);
+            return sendResponse(res, status.BAD_REQUEST);
         }
 
         let userData = { email };
@@ -110,7 +110,7 @@ export const updateAuthorInfo = async (req, res) => {
         return sendResponse(res, status.SUCCESS);
     } catch (error) {
         console.error('updateUserInfo 에러:', error);
-        return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+        return sendResponse(res, status.BAD_REQUEST);
     }
 }
 
