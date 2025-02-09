@@ -13,7 +13,7 @@ class Exhibition extends Model {
 
         const offset = (page - 1) * limit;
         const { count, rows } = await Exhibition.findAndCountAll({
-            attributes: ['id', 'title', 'image_url', 'created_at', 'popularity'],
+            attributes: ['id', 'title', 'image_url', 'created_at', 'popularity', 'start_date', 'end_date'],
             order,
             limit,
             offset,
@@ -25,17 +25,21 @@ class Exhibition extends Model {
         throw error;
       }
     }
+
     // 전시 등록 (작품 연결 포함)
-    static async createExhibition({ author_id, gallery_id, title, artworks }) {
+    static async createExhibition({ author_id, gallery_id, title, artworks, start_date, end_date }) {
       try {
         // 전시 생성
         const exhibition = await Exhibition.create({
           author_id,
           gallery_id,
           title,
+          start_date: start_date || null, // 필수 x -> null 허용
+          end_date: end_date || null,
           created_at: new Date(),
           updated_at: new Date(),
         });
+
         // 🎨 전시에 작품 연결 (작가의 작품만 허용)
         if (artworks && artworks.length > 0) {
           await Artwork.update(
@@ -48,18 +52,24 @@ class Exhibition extends Model {
         throw error;
       }
     }
+    
     // 전시 수정 (제목 및 작품 업데이트)
-    static async updateExhibition(id, { title, artworks }) {
+    static async updateExhibition(id, { title, artworks, start_date, end_date }) {
       try {
         const exhibition = await Exhibition.findByPk(id);
         if (!exhibition) {
           throw new Error("전시를 찾을 수 없습니다.");
         }
+
         // 제목 업데이트
-        if (title) {
-          exhibition.title = title;
-          await exhibition.save();
-        }
+        if (title) exhibition.title = title;
+        // 전시 시작일 및 마감일 등록
+        if (start_date !== undefined) exhibition.start_date = start_date;
+        if (end_date !== undefined) exhibition.end_date = end_date;
+
+        
+        await exhibition.save();
+
         // 작품 업데이트
         if (artworks && artworks.length > 0) {
           await Artwork.update(
@@ -72,13 +82,16 @@ class Exhibition extends Model {
         throw error;
       }
     }
+
     // 전시 삭제
     static async deleteExhibition(id) {
       try {
         const exhibition = await Exhibition.findByPk(id);
+        
         if (!exhibition) {
           throw new Error("전시를 찾을 수 없습니다.");
         }
+
         // 전시 삭제
         await exhibition.destroy();
         return { message: "전시 삭제 완료" };
@@ -103,6 +116,8 @@ Exhibition.init(
     image_url: { type: DataTypes.STRING }, // 최종 전시 이미지
     background_img_url: { type: DataTypes.STRING },  // 전시 배경 이미지
     popularity: { type: DataTypes.INTEGER, defaultValue: 0 }, // 인기순 정렬을 위한 필드
+    start_date: { type: DataTypes.DATE, allowNull: true }, // 전시 시작일
+    end_date: { type: DataTypes.DATE, allowNull: true },  // 전시 마감일
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },

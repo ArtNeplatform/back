@@ -1465,6 +1465,8 @@
                         "type": "string", 
                         "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/cafcd9e3-e3ba-4cb2-993f-928ccbc652ae.jpg"
                       },
+                      "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
+                      "end_date": { "type": "string", "format": "date", "example": "2025-03-10" },
                       "created_at": { "type": "string", "example": "2025-01-30T12:00:00Z" },
                       "popularity": { "type": "integer", "example": 120 }
                     }
@@ -1528,7 +1530,9 @@
                 "image_url": { 
                   "type": "string", 
                   "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/exhibition1.jpg" 
-                }
+                },
+                "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
+                "end_date": { "type": "string", "format": "date", "example": "2025-03-10" }
               }
             }
           }
@@ -1552,6 +1556,8 @@
                       "type": "string", 
                       "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/exhibition1.jpg" 
                     },
+                    "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
+                    "end_date": { "type": "string", "format": "date", "example": "2025-03-10" },
                     "created_at": { "type": "string", "example": "2025-02-01T12:00:00Z" },
                     "updated_at": { "type": "string", "example": "2025-02-01T12:00:00Z" }
                   }
@@ -1618,6 +1624,8 @@
                       "type": "string", 
                       "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/exhibition1.jpg" 
                     },
+                    "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
+                    "end_date": { "type": "string", "format": "date", "example": "2025-03-10" },
                     "created_at": { "type": "string", "example": "2025-02-01T12:00:00Z" },
                     "popularity": { "type": "integer", "example": 120 },
                     "author": {
