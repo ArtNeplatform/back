@@ -67,6 +67,26 @@ class User extends Model {
       throw error;
     }
   }
+
+  static async deleteUser(email) {
+    try {
+      const user = await User.findOne({
+        where: { email },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      await User.destroy({
+        where: { email },
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 // 모델 정의

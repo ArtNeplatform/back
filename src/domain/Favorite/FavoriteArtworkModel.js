@@ -51,7 +51,8 @@ FavoriteArtwork.init(
     id: { type: DataTypes.BIGINT, primaryKey: true, autoIncrement: true },
     user_id: { 
       type: DataTypes.BIGINT, 
-      references: { model: 'Users', key: 'id' } 
+      references: { model: 'Users', key: 'id' },
+      onDelete: 'CASCADE',
     },
     artwork_id: { 
       type: DataTypes.BIGINT, 

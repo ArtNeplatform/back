@@ -4,9 +4,12 @@ import User from '../User/UserModel.js';
 
 class Author extends Model {
   // 작가 생성
-  static async createAuthor(authorData) {
+  static async createAuthor(userData) {
     try {
-      const author = await Author.create(authorData);
+      const author = await Author.create({
+        user_id: userData.id,
+        author_name: userData.nickname,
+      });
       return author;
     } catch (error) {
       throw error;
@@ -121,6 +124,8 @@ Author.init(
       user_id: {
         type: DataTypes.BIGINT,
         references: { model: User, key: 'id' }, // User 모델 참조
+        onDelete: 'CASCADE',
+        allowNull: false,
       },
       author_name: { type: DataTypes.STRING },
       author_image_url: { type: DataTypes.STRING },
@@ -133,7 +138,7 @@ Author.init(
       bank_name: { type: DataTypes.STRING },
       account_holder: { type: DataTypes.STRING },
       account_number: { type: DataTypes.STRING },
-      popularity: { type: DataTypes.INTEGER },
+      popularity: { type: DataTypes.INTEGER, defaultValue: 0 },
       recent_work_at: { type: DataTypes.DATE },
       created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
