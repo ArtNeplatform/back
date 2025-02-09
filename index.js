@@ -73,11 +73,11 @@ app.use(cors({
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
+  app.use('/api', artworkManagementRoutes); // 작가 작품/경매/전시 조회
   app.use('/api/author', authorRoutes); // 작가
   app.use('/api/user', userRoutes); // 유저
   app.use('/api/',mainHomeRoutes ); // 작가
   app.use('/api/auction', auctionrRoutes); // 경매
-  app.use('/api', artworkManagementRoutes); // 작가 작품/경매/전시 조회
   app.use('/api', userArtworkRoutes); // 작품 구매자 구매 작품 조회
   app.use('/api', artworkList); // 작품 리스트 조회회
 
