@@ -22,6 +22,19 @@ export const updateUserInfo = async (req, res) => {
         return sendResponse(res, status.SUCCESS);
     } catch (error) {
         console.error('updateUserInfo 에러:', error);
-        return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+        return sendResponse(res, status.BAD_REQUEST);
+    }
+};
+
+// 유저 삭제 API
+export const deleteUser = async (req, res) => {
+    try {
+        const email = req.user.email;
+        await User.deleteUser(email);
+        
+        return sendResponse(res, status.SUCCESS);
+    } catch (error) {
+        console.error('deleteUser 에러:', error);
+        return sendResponse(res, status.BAD_REQUEST);
     }
 };

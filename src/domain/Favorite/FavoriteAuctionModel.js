@@ -11,6 +11,7 @@ FavoriteAuction.init(
     user_id: {
       type: DataTypes.BIGINT,
       references: { model: User, key: 'id' },
+      onDelete: 'CASCADE',
     },
     auction_id: {
       type: DataTypes.BIGINT,
