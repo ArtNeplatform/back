@@ -41,6 +41,6 @@ export const deleteUser = async (req, res) => {
         return sendResponse(res, status.SUCCESS);
     } catch (error) {
         console.error('deleteUser 에러:', error);
-        return sendResponse(res, status.BAD_REQUEST);
+        return sendResponse(res, status.MEMBER_NOT_FOUND);
     }
 };
