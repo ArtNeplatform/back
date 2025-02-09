@@ -8,7 +8,7 @@ export const verifyToken = (req, res, next) => {
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            const error = new Error('유효하지 않은 토큰 형식입니다.');
+            const error = new Error('TOKEN_EMPTY');
             error.statusCode = 401;
             throw error;
         }
@@ -16,7 +16,7 @@ export const verifyToken = (req, res, next) => {
         // 토큰 추출
         const token = authHeader.split(' ')[1];
         if (!token) {
-            const error = new Error('토큰이 제공되지 않았습니다.');
+            const error = new Error('TOKEN_EMPTY');
             error.statusCode = 401;
             throw error;
         }
@@ -27,8 +27,12 @@ export const verifyToken = (req, res, next) => {
 
         next();
     } catch (error) {
-        if (!error.statusCode) error.statusCode = 401;
-        next(error);
+        switch (error.message) {
+            case 'TOKEN_EMPTY':
+                return sendResponse(res, status.TOKEN_EMPTY);
+            default:
+                return sendResponse(res, status.TOKEN_INVALID);
+        }
     }
 };
 
