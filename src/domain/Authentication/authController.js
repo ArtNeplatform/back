@@ -5,7 +5,8 @@ import * as dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import User from '../User/UserModel.js';
 import Author from '../Author/AuthorModel.js';
-import { urlencoded } from 'express';
+import { sendResponse } from '../../../config/response.js';
+import { status } from '../../../config/response.status.js';
 
 dotenv.config();
 
@@ -100,7 +101,7 @@ export const signup = async (req, res, next) => {
             userInfo.email = kakao_account.email;
             userInfo.profile_image_url = properties.profile_image;
         } else {
-            throw new Error('Invalid social_type');
+            throw new Error('INVALID_SOCIAL_TYPE');
         }
         
         Object.assign(userInfo, req.body);
@@ -115,19 +116,32 @@ export const signup = async (req, res, next) => {
             await Author.createAuthor(user);
         }
         else {
-            throw new Error('Invalid role');
+            throw new Error('INVALID_ROLE');
         }
 
         const token = await signToken(userInfo.email);
-
-        res.status(201).json({
-            token: token,
-            userInfo: user,
-        });
-
+        sendResponse(res, status.CREATED, { token, userInfo: user });
     }
     catch(error) {
-        next(error);
+        switch(error.message) {
+            case 'PROVIDER_API_ERROR':
+                sendResponse(res, status.PROVIDER_API_ERROR);
+                break;
+            case 'INVALID_SOCIAL_TYPE':
+                sendResponse(res, status.INVALID_SOCIAL_TYPE);
+                break;
+            case 'INVALID_ROLE':
+                sendResponse(res, status.INVALID_ROLE);
+                break;
+            case 'EMAIL_ALREADY_EXIST':
+                sendResponse(res, status.EMAIL_ALREADY_EXIST);
+                break;
+            case 'SOCIAL_CODE_ALREADY_EXIST':
+                sendResponse(res, status.SOCIAL_CODE_ALREADY_EXIST);
+                break;
+            default:
+                sendResponse(res, status.BAD_REQUEST);
+        }
     }
 }
 
@@ -152,21 +166,26 @@ export const login = async (req, res, next) => {
             userInfo.social_id = 'K_' + authInfo.id;
             userInfo.email = kakao_account.email;
         } else {
-            throw new Error('Invalid social_type');
+            throw new Error('INVALID_SOCIAL_TYPE');
         }
         
         const user = await User.findUserByEmail(userInfo.email);
 
         const token = await signToken(userInfo.email);
 
-        res.status(201).json({
-            token: token,
-            userInfo: user,
-        });
-
+        sendResponse(res, status.SUCCESS, { token, userInfo: user });
     }
     catch(error) {
-        next(error);
+        switch(error.message) {
+            case 'PROVIDER_API_ERROR':
+                sendResponse(res, status.PROVIDER_API_ERROR);
+                break;
+            case 'INVALID_SOCIAL_TYPE':
+                sendResponse(res, status.INVALID_SOCIAL_TYPE);
+                break;
+            default:
+                sendResponse(res, status.BAD_REQUEST);
+        }
     }
 }
 
@@ -193,6 +212,7 @@ const googleAuthInformationGetter = async (code, redirectUri) => {
         return resp2.data;
     } catch(error) {
         console.log(error);
+        error.message = 'PROVIDER_API_ERROR';
         throw error;
     }
 }
@@ -225,6 +245,7 @@ const kakaoAuthInformationGetter = async (code, redirectUri) => {
         return resp2.data;
     } catch (error) {
         console.error("Kakao API Error:", error.response ? error.response.data : error.message);
+        error.message = 'PROVIDER_API_ERROR';
         throw error;
     }
 };

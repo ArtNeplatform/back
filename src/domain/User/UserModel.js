@@ -12,7 +12,7 @@ class User extends Model {
       });
 
       if (existingEmail) {
-        throw new Error('Email already exists');
+        throw new Error('EMAIL_ALREADY_EXIST');
       }
 
       // 소셜 ID 중복 확인
@@ -21,7 +21,7 @@ class User extends Model {
       });
 
       if (existingId) {
-        throw new Error('Social ID already exists');
+        throw new Error('SOCIAL_ID_ALREADY_EXIST');
       }
 
       // 사용자 생성

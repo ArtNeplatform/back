@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 export const status = {
     // success
     SUCCESS: {status: StatusCodes.OK, "isSuccess": true, "code": 2000, "message": "success!"},
+    CREATED: {status: StatusCodes.CREATED, "isSuccess": true, "code": 2010, "message": "created!"},
 
     // error
     // common err
@@ -17,6 +18,7 @@ export const status = {
     MEMBER_NOT_FOUND: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "MEMBER4001", "message": "사용자가 없습니다."},
     NICKNAME_NOT_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "MEMBER4002", "message": "닉네임은 필수입니다."},
     EMAIL_ALREADY_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "MEMBER4003", "message": "이미 가입된 이메일이 존재합니다."},
+    SOCIAL_CODE_ALREADY_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "MEMBER4004", "message": "이미 가입된 소셜 코드가 존재합니다."},
 
     // db error
     PARAMETER_IS_WRONG: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "DATABASE4001", "message": "쿼리 실행 시 전달되는 파라미터가 잘못되었습니다. 파라미터 개수 혹은 파라미터 형식을 확인해주세요."},
@@ -29,6 +31,7 @@ export const status = {
     AUTHOR_NOT_FOUND: {status: StatusCodes.NOT_FOUND, "isSuccess": false, "code": "AUTHOR4002", "message": "작가 정보가 없습니다."},
     PROFILE_INFO_NOT_PROVIDED: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4003", "message": "프로필 등록 정보가 제공되지 않았습니다."},
     INVALID_ATTRIBUTE: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTHOR4004", "message": "유효하지 않은 속성입니다."},
+
 
     // artwork err
     ARTWORK_NOT_FOUND: {status: StatusCodes.NOT_FOUND, "isSuccess": false, "code": "ARTWORK4001", "message": "작품이 없습니다."},
@@ -44,15 +47,15 @@ export const status = {
     AUCTION_ALREADY_FAVORITED: {status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUCTION4008', message: '이미 좋아요한 경매입니다.' },
     AUCTION_FAVORITE_NOT_FOUND: { status: StatusCodes.NOT_FOUND, isSuccess: false, code: 'AUCTION4009', message: '좋아요된 경매를 찾을 수 없습니다.'},
 
+    // oauth provider err
+    PROVIDER_API_ERROR: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUTH4001', message: 'OAUTH 프로바이더 API 에러' },
+    // authentication err
+    INVALID_SOCIAL_TYPE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUTH4002', message: '유효하지 않은 프로바이더 소셜 타입' },
+    INVALID_ROLE: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'AUTH4003', message: '유효하지 않은 계정 역할' },
+    TOKEN_INVALID : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTH4004", "message": "유효하지 않은 토큰입니다" },
+    TOKEN_EMPTY : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "AUTH4005", "message": "토큰이 제공되지 않았습니다" },
 
-    // login err
-    LOGIN_PARAM_NOT_EXIST: {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4001", "message": "ID 혹은 PW 값이 존재하지 않습니다."},
-    LOGIN_ID_NOT_EXIST : {status: StatusCodes.NOT_FOUND, "isSuccess": false, "code": "SIGNIN4002", "message": "아이디를 찾을 수 없습니다."},
-    LOGIN_PASSWORD_WRONG : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4003", "message": "비밀번호가 일치하지 않습니다." },
-    LOGIN_ID_EXIST : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4004", "message": "아이디가 존재합니다." },
-    TOKEN_EMPTY : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4005", "message": "jwt token이 없습니다." },
-    TOKEN_VERIFICATION_FAILURE : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4006", "message": "jwt token 인증 실패" },
-    USER_NOT_EXIST : {status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "SIGNIN4007", "message": "유저를 찾을 수 없습니다" },
+
 
     // upload error
     UPLOAD_MULTER_ERROR: { status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "UPLOAD4001", "message": "파일 업로드 중 Multer 오류가 발생했습니다." }, 
