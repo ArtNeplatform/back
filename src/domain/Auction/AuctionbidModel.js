@@ -16,6 +16,7 @@ AuctionBid.init(
     user_id: {
       type: DataTypes.BIGINT,
       references: { model: User, key: 'id' },
+      onDelete: 'CASCADE',
     },
     bid_price: { type: DataTypes.DECIMAL },
     bid_date: { type: DataTypes.DATE },

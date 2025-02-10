@@ -9,6 +9,8 @@ import { response } from './config/response.js';
 import { status } from './config/response.status.js';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import morgan from 'morgan'; 
+import moment from 'moment'; 
 
 import { initializeWebSocket } from './config/webSocket.js';
 import { verifyToken,getTempTokenByEmail } from './middlewares/authMiddleware.js';
@@ -26,14 +28,23 @@ import mainHomeRoutes from './src/domain/Artwork/mainHomeRoutes.js';
 import userRoutes from './src/domain/User/userRoutes.js';
 import exhibitionRoutes from './src/domain/Exhibition/exhibitionRoutes.js';
 import myPageRoutes from './src/domain/MyPage/MyPageRoutes.js';
+import paymentRoutes from './src/domain/Payment/PaymentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 process.env.TZ = 'Asia/Seoul';
 
 
+// 로그에 시간 포맷 추가
+morgan.format('custom', function(tokens, req, res) {
+  return `[${moment().utcOffset(9).format('YYYY-MM-DDTHH:mm:ss.SSS')}]: ${tokens.method(req, res)} ${tokens.url(req, res)} ${tokens.status(req, res)} ${tokens['response-time'](req, res)} ms`;
+});
+
+app.use(morgan('custom'));
+
 app.use(cors({
-    origin: 'http://localhost:5173',  // 필요한 프론트엔드 URL 추후에 연결 후  설정
+    //origin: '*', 
+    origin: ['http://localhost:5173', 'https://artne.store'], // 필요한 프론트엔드 URL 추후에 연결 후  설정
     credentials: true
   }));
   app.use(express.json());
@@ -41,7 +52,7 @@ app.use(cors({
   // MySQL 연결 테스트 API
   
   app.get('/', (req, res) => {
-    res.send('Welcome to the Artne Server!');
+    res.send('Welcome to the Artne Server!!');
   });
 
   app.use('/auth', authRoutes);
@@ -49,7 +60,8 @@ app.use(cors({
   app.use(express.json()); // JSON 요청을 처리하기 위한 미들웨어
 
   // 전시
-  app.use('/api', exhibitionRoutes);
+  //app.use('/api', exhibitionRoutes);
+
   // 인증 필요 route 정의 예시
   // 실제로는 route 파일로 분리하여 사용
   app.get('/ping', verifyToken, (req, res) => {
@@ -62,14 +74,14 @@ app.use(cors({
   app.use('/api', userSpaceRoutes); // 내 공간 등록
   app.use('/api', artworkRoutes); // 작품 등록
   app.use('/api', artworkDetailRoutes); // 작품 상세 조회
+  app.use('/api', artworkManagementRoutes); // 작가 작품/경매/전시 조회
   app.use('/api/author', authorRoutes); // 작가
   app.use('/api/user', userRoutes); // 유저
   app.use('/api/',mainHomeRoutes ); // 작가
   app.use('/api/auction', auctionrRoutes); // 경매
-  app.use('/api', artworkManagementRoutes); // 작가 작품/경매/전시 조회
   app.use('/api', userArtworkRoutes); // 작품 구매자 구매 작품 조회
   app.use('/api', artworkList); // 작품 리스트 조회회
-
+  app.use('/api/payment', paymentRoutes); // 결제
   app.use('/api/exhibitions', exhibitionRoutes);  // 전시
   app.use('/api/mypage', myPageRoutes);  // 마이페이지
 

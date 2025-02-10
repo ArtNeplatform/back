@@ -12,7 +12,7 @@ class User extends Model {
       });
 
       if (existingEmail) {
-        throw new Error('Email already exists');
+        throw new Error('EMAIL_ALREADY_EXIST');
       }
 
       // 소셜 ID 중복 확인
@@ -21,7 +21,7 @@ class User extends Model {
       });
 
       if (existingId) {
-        throw new Error('Social ID already exists');
+        throw new Error('SOCIAL_ID_ALREADY_EXIST');
       }
 
       // 사용자 생성
@@ -36,6 +36,18 @@ class User extends Model {
     try {
       const user = await User.findOne({
         where: { email },
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async findUserById(id) {
+    try {
+      const user = await User.findOne({
+        where: { id },
       });
 
       return user;
@@ -63,6 +75,26 @@ class User extends Model {
       });
 
       return updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async deleteUser(email) {
+    try {
+      const user = await User.findOne({
+        where: { email },
+      });
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      await User.destroy({
+        where: { email },
+      });
+
+      return user;
     } catch (error) {
       throw error;
     }

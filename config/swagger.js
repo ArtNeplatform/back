@@ -1,7 +1,7 @@
 // Swagger 설정 파일
 // const swaggerAutogen = require('swagger-autogen')({ openapi: '3.0.0' });
 import swaggerAutogen from 'swagger-autogen' 
-const PORT = 3306; // 사용하는 포트 번호에 맞게 변경
+const PORT = process.env.PORT || 5000; 
 
 const options = {
   info: {
@@ -10,7 +10,7 @@ const options = {
   },
   servers: [
     {
-      url: `http://localhost:${PORT}`, // base URL
+      url: `http://localhost:5000`, // base URL
     },
   ],
   schemes: ['http'], // 사용할 프로토콜
