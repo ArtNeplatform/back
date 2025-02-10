@@ -72,8 +72,11 @@ export const getAuthorDetails = async (req, res) => {
 
     // 진행 중인 전시 조회
     const exhibitions = await Exhibition.findAll({
-      where: { author_id: author.id },
-      attributes: ['id', 'title', 'image_url', 'created_at'],
+      where: {
+        author_id: author.id,
+        end_date: { [Op.gt]: new Date() }, // 현재 시간보다 종료일(end_date)이 이후인 전시만 조회
+      },
+      attributes: ['id', 'title', 'image_url', 'created_at', 'end_date'],
     });
 
     // 응답 데이터 구성
