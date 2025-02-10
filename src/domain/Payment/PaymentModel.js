@@ -56,6 +56,44 @@ class Payment extends Model {
       throw error;
     }
   }
+
+  // 상태 업데이트
+  static async updatePaymentStatus(paymentId, status) {
+    try {
+      const [updated] = await Payment.update(
+        { payment_status: status },
+        {
+          where: { id: paymentId },
+        }
+      );
+
+      if (updated) {
+        return Payment.findOne({ where: { id: paymentId } });
+      }
+      throw new Error('Payment not found');
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // kakaopay tid 저장
+  static async updateKakaoPayTid(paymentId, tid) {
+    try {
+      const [updated] = await Payment.update(
+        { kakaopay_tid: tid },
+        {
+          where: { id: paymentId },
+        }
+      );
+
+      if (updated) {
+        return Payment.findOne({ where: { id: paymentId } });
+      }
+      throw new Error('Payment not found');
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 // 모델 정의
@@ -74,6 +112,7 @@ Payment.init(
       payment_status: { type: DataTypes.ENUM('PENDING', 'COMPLETED') },
       created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+      kakaopay_tid: { type: DataTypes.STRING },
     },
     {
       sequelize, 

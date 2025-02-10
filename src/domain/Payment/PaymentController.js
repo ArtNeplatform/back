@@ -12,6 +12,7 @@ import { status } from '../../../config/response.status.js';
 dotenv.config();
 
 const KAKAOPAY_PAYMENT_READY_URL = 'https://open-api.kakaopay.com/online/v1/payment/ready';
+const KAKAOPAY_PAYMENT_APPROVE_URL = 'https://open-api.kakaopay.com/online/v1/payment/approve';
 
 const KAKAOPAY_SECRET_KEY = process.env.KAKAOPAY_SECRET_KEY_DEV;
 const KAKAOPAY_CID = process.env.KAKAOPAY_FRANCHISE_CODE_DEV;
@@ -87,9 +88,14 @@ export const kakaoPayReady = async (req, res) => {
             }
         });
 
+        if(response.status !== 200)
+            throw new Error('PAYMENT_KAKAOPAY_READY_ERROR');
+
+        // kakaopay_tid 저장
+        await Payment.updateKakaoPayTid(payment_id, response.data.tid);
+
         // 결제 준비 응답 저장
         const paymentData = {
-            tid: response.data.tid,
             next_redirect_pc_url: response.data.next_redirect_pc_url,
             next_redirect_mobile_url: response.data.next_redirect_mobile_url,
             next_redirect_app_url: response.data.next_redirect_app_url,
@@ -118,6 +124,61 @@ export const kakaoPayReady = async (req, res) => {
                 return sendResponse(res, status.AUCTION_NOT_FOUND);
             case 'ARTWORK_NOT_FOUND':
                 return sendResponse(res, status.ARTWORK_NOT_FOUND);
+            case 'PAYMENT_KAKAOPAY_READY_ERROR':
+                return sendResponse(res, status.PAYMENT_KAKAOPAY_READY_ERROR);
+            default:
+                return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+        }
+    }
+};
+
+export const kakaoPayApprove = async (req, res) => {
+    try {
+        const payment_id = req.params.payment_id;
+        const { pg_token } = req.body;
+
+        //결제 객체 찾기
+        const payment = await Payment.findPaymentById(payment_id);
+
+        if (!payment)
+            throw new Error('PAYMENT_NOT_FOUND');
+
+        if (payment.payment_status === 'COMPLETED')
+            throw new Error('PAYMENT_ALREADY_COMPLETED');
+
+        const response = await axios({
+            method: 'POST',
+            url: KAKAOPAY_PAYMENT_APPROVE_URL,
+            headers: {
+                'Authorization': `SECRET_KEY ${KAKAOPAY_SECRET_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                cid: KAKAOPAY_CID || 'TC0ONETIME',
+                tid: payment.kakaopay_tid,
+                partner_order_id: payment.id,
+                partner_user_id: payment.user_id,
+                pg_token
+            }
+        });
+
+        if(response.status !== 200)
+            throw new Error('KAKAOPAY_APPROVE_ERROR');
+
+        await Payment.updatePaymentStatus(payment_id, 'COMPLETED');
+
+        return sendResponse(res, status.SUCCESS, payment_id);
+
+    } catch (error) {
+        console.error('KakaoPay Approve Error:', error.response?.data || error.message);
+ 
+        switch (error.message) {
+            case 'PAYMENT_NOT_FOUND':
+                return sendResponse(res, status.PAYMENT_NOT_FOUND);
+            case 'PAYMENT_ALREADY_COMPLETED':
+                return sendResponse(res, status.PAYMENT_ALREADY_COMPLETED);
+            case 'KAKAOPAY_APPROVE_ERROR':
+                return sendResponse(res, status.PAYMENT_KAKAOPAY_APPROVE_ERROR);
             default:
                 return sendResponse(res, status.INTERNAL_SERVER_ERROR);
         }
