@@ -56,7 +56,9 @@ export const status = {
     TOKEN_INVALID : {status: StatusCodes.UNAUTHORIZED, "isSuccess": false, "code": "AUTH4004", "message": "유효하지 않은 토큰입니다" },
     TOKEN_EMPTY : {status: StatusCodes.UNAUTHORIZED, "isSuccess": false, "code": "AUTH4005", "message": "토큰이 제공되지 않았습니다" },
 
-
+    // payment err
+    PAYMENT_NOT_FOUND: { status: StatusCodes.NOT_FOUND, isSuccess: false, code: 'PAYMENT4001', message: '해당 결제가 없습니다.' },
+    PAYMENT_ALREADY_COMPLETED: { status: StatusCodes.BAD_REQUEST, isSuccess: false, code: 'PAYMENT4002', message: '이미 완료된 결제입니다.' },
 
     // upload error
     UPLOAD_MULTER_ERROR: { status: StatusCodes.BAD_REQUEST, "isSuccess": false, "code": "UPLOAD4001", "message": "파일 업로드 중 Multer 오류가 발생했습니다." }, 
