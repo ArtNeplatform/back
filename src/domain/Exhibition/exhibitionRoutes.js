@@ -36,7 +36,7 @@ router.get('/api/exhibitions', async (req, res) => {
 // 전시 등록 API
 router.post('/api/exhibitions', async (req, res) => {
   try {
-    const { author_id, title, image_url } = req.body;
+    const { author_id, title, image_url, start_date, end_date } = req.body;
 
     // 필수 필드 검증증
     if (!author_id || !title || !image_url) {
@@ -51,7 +51,9 @@ router.post('/api/exhibitions', async (req, res) => {
       author_id, 
       title, 
       artworks, 
-      image_url  // 최종 전시 이미지
+      image_url,  // 최종 전시 이미지
+      start_date, // 전시 시작일
+      end_date  // 전시 마감일
     });
 
     res.status(201).json({ success: true,  message: "전시가 성공적으로 등록되었습니다.", result: exhibition });
@@ -65,14 +67,16 @@ router.post('/api/exhibitions', async (req, res) => {
 router.put('/api/exhibitions/:id', uploadMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, artworks } = req.body;
+    const { title, artworks, start_date, end_date } = req.body;
 
     // S3에 새로 업로드된 대표 이미지 URL 가져오기
     const image_url = req.files?.[0]?.location || null;
 
     const updatedExhibition = await Exhibition.updateExhibition(id, { 
       title, 
-      image_url
+      image_url,
+      start_date,  // 전시 시작일
+      end_date  // 전시 마감일
     });
 
     if (!updatedExhibition) {
