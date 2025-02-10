@@ -25,7 +25,7 @@ const KAKAO_USERINFO_URL = 'https://kapi.kakao.com/v2/user/me';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
-const FRONTEND_URI = process.env.FRONTEND_URI || 'https://artne.store';
+const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:5173';
 
 export const kakaoOAuth = async (req, res, next) => {
     try {
