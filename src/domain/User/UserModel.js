@@ -44,6 +44,18 @@ class User extends Model {
     }
   }
 
+  static async findUserById(id) {
+    try {
+      const user = await User.findOne({
+        where: { id },
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async userUpdate(userData) {
     try {
       const { email } = userData;

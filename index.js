@@ -28,6 +28,7 @@ import mainHomeRoutes from './src/domain/Artwork/mainHomeRoutes.js';
 import userRoutes from './src/domain/User/userRoutes.js';
 import exhibitionRoutes from './src/domain/Exhibition/exhibitionRoutes.js';
 import myPageRoutes from './src/domain/MyPage/MyPageRoutes.js';
+import paymentRoutes from './src/domain/Payment/PaymentRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -80,7 +81,7 @@ app.use(cors({
   app.use('/api/auction', auctionrRoutes); // 경매
   app.use('/api', userArtworkRoutes); // 작품 구매자 구매 작품 조회
   app.use('/api', artworkList); // 작품 리스트 조회회
-
+  app.use('/api/payment', paymentRoutes); // 결제
   app.use('/api/exhibitions', exhibitionRoutes);  // 전시
   app.use('/api/mypage', myPageRoutes);  // 마이페이지
 
