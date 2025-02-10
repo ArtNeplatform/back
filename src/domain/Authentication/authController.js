@@ -29,7 +29,7 @@ const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:5173';
 
 export const kakaoOAuth = async (req, res, next) => {
     try {
-        const is_signup = req.query.is_signup || false;
+        const is_signup = req.query.signup || false;
 
         const redirect_uri = KAKAO_OAUTH_REDIRECT_URI + (is_signup ? '/signup' : '/login');
 
@@ -71,7 +71,7 @@ export const kakaoOAuthRedirectLogin = async (req, res, next) => {
 
 export const googleOAuth = async (req, res, next) => {
     try {
-        const is_signup = req.query.is_signup || false;
+        const is_signup = req.query.signup || false;
 
         const redirect_uri = GOOGLE_OAUTH_REDIRECT_URI + (is_signup ? '/signup' : '/login');
 
