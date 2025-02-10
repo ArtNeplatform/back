@@ -25,12 +25,17 @@ const KAKAO_USERINFO_URL = 'https://kapi.kakao.com/v2/user/me';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo';
 
+const FRONTEND_URI = process.env.FRONTEND_URI || 'https://artne.store';
 
 export const kakaoOAuth = async (req, res, next) => {
     try {
+        const is_signup = req.query.is_signup || false;
+
+        const redirect_uri = KAKAO_OAUTH_REDIRECT_URI + (is_signup ? '/signup' : '/login');
+
         let url = KAKAO_OAUTH_URL;
         url += `?client_id=${KAKAO_CLIENT_ID}`
-        url += `&redirect_uri=${KAKAO_OAUTH_REDIRECT_URI}`
+        url += `&redirect_uri=${redirect_uri}`
         url += '&response_type=code'
         res.redirect(url);
     }
@@ -39,25 +44,40 @@ export const kakaoOAuth = async (req, res, next) => {
     }
 }
 
-export const kakaoOAuthRedirect = async (req, res, next) => {
+export const kakaoOAuthRedirectSignup = async (req, res, next) => {
     try {
         const { code } = req.query;
     
-        res.status(200).json({
-            social_type: 'KAKAO',
-            code: code,
-        })
+        //redirect to frontend page with qureystring code
+        res.redirect(FRONTEND_URI + '/register/redirect?code=' + code + '&social_type=KAKAO');
     }
     catch(error) {
-        next(error);
+        res.redirect(FRONTEND_URI + '/register/error');
+    }
+}
+
+export const kakaoOAuthRedirectLogin = async (req, res, next) => {
+    try {
+        //use login function
+        const { code } = req.query;
+
+        //redirect to frontend page with qureystring code
+        res.redirect(FRONTEND_URI + '/login/redirect?code=' + code + '&social_type=KAKAO');
+    }
+    catch(error) {
+        res.redirect(FRONTEND_URI + '/login/error');
     }
 }
 
 export const googleOAuth = async (req, res, next) => {
     try {
+        const is_signup = req.query.is_signup || false;
+
+        const redirect_uri = GOOGLE_OAUTH_REDIRECT_URI + (is_signup ? '/signup' : '/login');
+
         let url = GOOGLE_OAUTH_URL;
         url += `?client_id=${GOOGLE_CLIENT_ID}`
-        url += `&redirect_uri=${GOOGLE_OAUTH_REDIRECT_URI}`
+        url += `&redirect_uri=${redirect_uri}`
         url += '&response_type=code'
         url += '&scope=email profile'
         res.redirect(url);
@@ -67,17 +87,27 @@ export const googleOAuth = async (req, res, next) => {
     }
 }
 
-export const googleOAuthRedirect = async (req, res, next) => {
+export const googleOAuthRedirectSignup = async (req, res, next) => {
     try{
         const { code } = req.query;
 
-        res.status(200).json({
-            social_type: 'GOOGLE',
-            code: code,
-        })
+        //redirect to frontend page with qureystring code
+        res.redirect(FRONTEND_URI + '/register/redirect?code=' + code + '&social_type=GOOGLE');
     }
     catch(error) {
-        next(error);
+        res.redirect(FRONTEND_URI + '/register/error');
+    }
+}
+
+export const googleOAuthRedirectLogin = async (req, res, next) => {
+    try {
+        const { code } = req.query;
+
+        //redirect to frontend page with qureystring code
+        res.redirect(FRONTEND_URI + '/login/redirect?code=' + code + '&social_type=GOOGLE');
+    }
+    catch(error) {
+        res.redirect(FRONTEND_URI + '/login/error');
     }
 }
 
