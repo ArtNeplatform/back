@@ -1,6 +1,8 @@
 import { sendResponse } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 import Author from './AuthorModel.js';
+import Artwork from '../Artwork/ArtworkModel.js';
+import Exhibition from '../Exhibition/ExhibitionModel.js';
 import User from '../User/UserModel.js';
 
 // 작가 계좌 정보 등록 API
@@ -129,28 +131,93 @@ export const updateAuthorInfo = async (req, res) => {
 
 export const getAuthorDetail = async (req, res, next) => {
     try {
-      const authorId = req.params.authorId;
-  
-      const author = await Author.findOne({
-        where: { id: authorId },
-      });
+        const authorId = req.params.authorId;
 
-      // return experience, education, award
-      const { experience, education, award } = author;
+        let {
+            artwork_page = 1,
+            artwork_limit = 10,
+            exhibition_page = 1,
+            exhibition_limit = 4
+        } = req.query;
 
-      let responseData = {};
+        artwork_page = parseInt(artwork_page, 10);
+        artwork_limit = parseInt(artwork_limit, 10);
+        exhibition_page = parseInt(exhibition_page, 10);
+        exhibition_limit = parseInt(exhibition_limit, 10);
 
-      responseData.artwork_count = await Author.getArtworkConut(authorId);
-      responseData.exhibition_count = await Author.getExhibitionCount(authorId);
-      responseData.experience = parseTextToArray(experience);
-      responseData.education = parseTextToArray(education);
-      responseData.award = parseTextToArray(award);
+        if (isNaN(artwork_page) || artwork_page < 1) artwork_page = 1;
+        if (isNaN(artwork_limit) || artwork_limit < 1) artwork_limit = 10;
+        if (isNaN(exhibition_page) || exhibition_page < 1) exhibition_page = 1;
+        if (isNaN(exhibition_limit) || exhibition_limit < 1) exhibition_limit = 4;
 
-      return sendResponse(res, status.SUCCESS, responseData);
+        const artwork_offset = (artwork_page - 1) * artwork_limit;
+        const exhibition_offset = (exhibition_page - 1) * exhibition_limit;
+
+        const author = await Author.findOne({
+            where: { id: authorId },
+        });
+
+        if (!author) {
+            throw new Error('AUTHOR_NOT_FOUND');
+        }
+
+        // return experience, education, award
+        const { experience, education, award } = author;
+
+        let responseData = {};
+
+        responseData.author_name = author.author_name;
+        responseData.description = author.description;
+        responseData.author_image_url = author.author_image_url;
+        responseData.introduction_image_url = author.introduction_image_url;
+        responseData.artwork_count = await Author.getArtworkConut(authorId);
+        responseData.exhibition_count = await Author.getExhibitionCount(authorId);
+        responseData.experience = parseTextToArray(experience);
+        responseData.education = parseTextToArray(education);
+        responseData.award = parseTextToArray(award);
+
+        const sort_option = ['created_at', 'DESC'];
+
+        // get artwork from author list with pagenation
+        const artworks = await Artwork.findAndCountAll({
+            where: { author_id: authorId },
+            order: [sort_option],
+            limit: artwork_limit,
+            offset: artwork_offset,
+        });
+
+        // Get exhibitions with pagination
+        const exhibitions = await Exhibition.findAndCountAll({
+            where: { author_id: authorId },
+            order: [sort_option],
+            limit: exhibition_limit,
+            offset: exhibition_offset,
+        });
+
+        responseData.artworks = {
+            total: artworks.count,
+            totalPages: Math.ceil(artworks.count / artwork_limit),
+            currentPage: artwork_page,
+            items: artworks.rows
+        };
+
+        responseData.exhibitions = {
+            total: exhibitions.count,
+            totalPages: Math.ceil(exhibitions.count / exhibition_limit),
+            currentPage: exhibition_page,
+            items: exhibitions.rows
+        };
+        
+        return sendResponse(res, status.SUCCESS, responseData);
     }
     catch (error) {
         console.error('Error fetching author detail:', error);
-        return sendResponse(res, status.AUTHOR_NOT_FOUND);
+        switch (error.message) {
+            case 'AUTHOR_NOT_FOUND':
+                return sendResponse(res, status.AUTHOR_NOT_FOUND);
+            default:
+                return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+        }
     }
 };
 
