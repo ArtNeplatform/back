@@ -68,6 +68,7 @@ export const getAuthors = async (req, res, next) => {
             const artwork_count = await Author.getArtworkConut(author.id);
             const exhibition_count = await Author.getExhibitionCount(author.id);
             authorNameAndCounts[author.author_name] = {
+                author_id: author.id,
                 artwork_count,
                 exhibition_count
             };
