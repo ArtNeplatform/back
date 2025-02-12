@@ -23,6 +23,11 @@ export const verifyToken = (req, res, next) => {
 
         // 토큰 검증
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if(decoded.isComplete === false) {
+            const error = new Error('TOKEN_INCOMPLETE');
+            error.statusCode = 401;
+            throw error;
+        }
         req.user = decoded;
 
         next();
@@ -30,6 +35,43 @@ export const verifyToken = (req, res, next) => {
         switch (error.message) {
             case 'TOKEN_EMPTY':
                 return sendResponse(res, status.TOKEN_EMPTY);
+            case 'TOKEN_INCOMPLETE':
+                return sendResponse(res, status.TOKEN_INCOMPLETE);
+            default:
+                return sendResponse(res, status.TOKEN_INVALID);
+        }
+    }
+};
+
+export const verifyIncompleteToken = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            const error = new Error('TOKEN_EMPTY');
+            error.statusCode = 401;
+            throw error;
+        }
+
+        // 토큰 추출
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            const error = new Error('TOKEN_EMPTY');
+            error.statusCode = 401;
+            throw error;
+        }
+
+        // 토큰 검증
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+
+        next();
+    } catch (error) {
+        switch (error.message) {
+            case 'TOKEN_EMPTY':
+                return sendResponse(res, status.TOKEN_EMPTY);
+            case 'TOKEN_INCOMPLETE':
+                return sendResponse(res, status.TOKEN_INCOMPLETE);
             default:
                 return sendResponse(res, status.TOKEN_INVALID);
         }

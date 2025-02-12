@@ -29,9 +29,7 @@ const FRONTEND_URI = process.env.FRONTEND_URI || 'http://localhost:5173';
 
 export const kakaoOAuth = async (req, res, next) => {
     try {
-        const is_signup = req.query.signup || false;
-
-        const redirect_uri = KAKAO_OAUTH_REDIRECT_URI + (is_signup ? '/signup' : '/login');
+        const redirect_uri = KAKAO_OAUTH_REDIRECT_URI;
 
         let url = KAKAO_OAUTH_URL;
         url += `?client_id=${KAKAO_CLIENT_ID}`
@@ -71,9 +69,7 @@ export const kakaoOAuthRedirectLogin = async (req, res, next) => {
 
 export const googleOAuth = async (req, res, next) => {
     try {
-        const is_signup = req.query.signup || false;
-
-        const redirect_uri = GOOGLE_OAUTH_REDIRECT_URI + (is_signup ? '/signup' : '/login');
+        const redirect_uri = GOOGLE_OAUTH_REDIRECT_URI;
 
         let url = GOOGLE_OAUTH_URL;
         url += `?client_id=${GOOGLE_CLIENT_ID}`
@@ -176,8 +172,100 @@ export const signup = async (req, res, next) => {
     }
 }
 
-
 export const login = async (req, res, next) => {
+    try {
+
+        const { code, social_type } = req.body;
+
+        const userInfo = {};
+        
+        if (social_type === 'GOOGLE') {
+            const authInfo = await googleAuthInformationGetter(code, GOOGLE_OAUTH_REDIRECT_URI);
+            userInfo.social_id = 'G_' + authInfo.id;
+            userInfo.email = authInfo.email;
+            userInfo.profile_image_url = authInfo.picture;
+        }
+        else if (social_type === 'KAKAO') {
+            const authInfo = await kakaoAuthInformationGetter(code, KAKAO_OAUTH_REDIRECT_URI);
+            const { properties, kakao_account } = authInfo;
+            userInfo.social_id = 'K_' + authInfo.id;
+            userInfo.email = kakao_account.email;
+            userInfo.profile_image_url = properties.profile_image;
+        } else {
+            throw new Error('INVALID_SOCIAL_TYPE');
+        }
+        
+        const user = await User.findUserByEmail(userInfo.email);
+
+        if(!user) {
+            await User.createUser(userInfo);
+            const token = await signToken(userInfo.email, false);
+            sendResponse(res, status.CREATED, { token, isComplete: false });
+        }
+        else if(!user.name || !user.nickname || !user.phone_number) {
+            const token = await signToken(userInfo.email, false);
+            sendResponse(res, status.SUCCESS, { token, isComplete: false });
+        }
+        else {
+            const token = await signToken(userInfo.email);
+            sendResponse(res, status.SUCCESS, { token, isComplete: true });
+        }
+    }
+    catch(error) {
+        switch(error.message) {
+            case 'PROVIDER_API_ERROR':
+                sendResponse(res, status.PROVIDER_API_ERROR);
+                break;
+            case 'INVALID_SOCIAL_TYPE':
+                sendResponse(res, status.INVALID_SOCIAL_TYPE);
+                break;
+            default:
+                console.log('로그인 에러 발생 : ', error);
+                sendResponse(res, status.BAD_REQUEST);
+        }
+    }
+}
+
+export const completion = async (req, res, next) => {
+    try {
+        const {role, name, nickname, phone_number} = req.body;
+
+        if (!name || !nickname || !phone_number) {
+            throw new Error('EMPTY_VALID_ATTRIBUTE');
+        }
+
+        if (role !== 'BUYER' && role !== 'AUTHOR') {
+            throw new Error('INVALID_ROLE');
+        }
+
+        const email = req.user.email;
+        const userInfo = { role, name, nickname, phone_number };
+        const user = await User.completeUser(email, userInfo);
+
+        if(role === 'AUTHOR') {
+            await Author.createAuthor(user);
+        }
+
+        const token = await signToken(email);
+        sendResponse(res, status.SUCCESS, {token, isComplete: true});
+
+    }
+    catch(error) {
+        switch(error.message) {
+            case 'EMPTY_VALID_ATTRIBUTE':
+                sendResponse(res, status.EMPTY_VALID_ATTRIBUTE);
+                break;
+            case 'INVALID_ROLE':
+                sendResponse(res, status.INVALID_ROLE);
+                break;
+            default:
+                console.log('회원정보 완료 에러 발생 : ', error);
+                sendResponse(res, status.BAD_REQUEST);
+        }
+    }
+}
+
+export const login_old = async (req, res, next) => {
     try {
         const { code, social_type } = req.body;
         console.log(req.body);
@@ -281,8 +369,8 @@ const kakaoAuthInformationGetter = async (code, redirectUri) => {
     }
 };
 
-export const signToken = async (email) => {
-    return jwt.sign({ email }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN,
+export const signToken = async (email, isComplete = true, expires = process.env.JWT_EXPIRES_IN) => {
+    return jwt.sign({ email, isComplete }, process.env.JWT_SECRET, {
+        expiresIn: expires,
     });
 }

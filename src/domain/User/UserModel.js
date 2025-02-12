@@ -80,6 +80,27 @@ class User extends Model {
     }
   }
 
+  static async completeUser(email, userInfo) {
+    try {
+      await User.update(
+        userInfo,
+        {
+          where: { email },
+        }
+      );
+
+      const updatedUser = await User.findOne({
+        where: { email },
+      });
+
+      console.log(updatedUser);
+
+      return updatedUser;
+    } catch (error) {
+      throw error
+    }
+  }
+
   static async deleteUser(email) {
     try {
       const user = await User.findOne({
