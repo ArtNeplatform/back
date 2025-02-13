@@ -1738,18 +1738,6 @@
               }
             }
           },
-          "400": {
-            "description": "잘못된 요청",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 400 },
-                "message": { "type": "string", "example": "author_id는 필수입니다." },
-                "result": { "type": "array", "example": [] }
-              }
-            }
-          },
           "404": {
             "description": "작품을 찾을 수 없음",
             "schema": {
