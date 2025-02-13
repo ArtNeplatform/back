@@ -82,8 +82,8 @@ app.use(cors({
   app.use('/api', userArtworkRoutes); // 작품 구매자 구매 작품 조회
   app.use('/api', artworkList); // 작품 리스트 조회회
   app.use('/api/payment', paymentRoutes); // 결제
-  app.use('/api/exhibitions', exhibitionRoutes);  // 전시
-  app.use('/api/mypage', myPageRoutes);  // 마이페이지
+  app.use('/api', exhibitionRoutes);  // 전시
+  app.use('/api', myPageRoutes);  // 마이페이지
 
   //웹소켓
   initializeWebSocket(app);

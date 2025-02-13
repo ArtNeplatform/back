@@ -27,7 +27,7 @@ class Exhibition extends Model {
     }
 
     // 전시 등록 (작품 연결 포함)
-    static async createExhibition({ author_id, gallery_id, title, artworks, start_date, end_date }) {
+    static async createExhibition({ author_id, gallery_id = 1, title, artworks, start_date, end_date }) {
       try {
         // 전시 생성
         const exhibition = await Exhibition.create({
@@ -63,6 +63,7 @@ class Exhibition extends Model {
 
         // 제목 업데이트
         if (title) exhibition.title = title;
+        if (gallery_id !== undefined) exhibition.gallery_id = gallery_id; // 갤러리 ID 업데이트 가능하도록 변경
         // 전시 시작일 및 마감일 등록
         if (start_date !== undefined) exhibition.start_date = start_date;
         if (end_date !== undefined) exhibition.end_date = end_date;
@@ -110,7 +111,8 @@ Exhibition.init(
     },
     gallery_id: { 
       type: DataTypes.BIGINT, 
-      allowNull: false 
+      allowNull: true,
+      defaultValue: 1 
     },
     title: { type: DataTypes.STRING },
     image_url: { type: DataTypes.STRING }, // 최종 전시 이미지
