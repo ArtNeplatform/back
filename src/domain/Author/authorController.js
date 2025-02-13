@@ -58,7 +58,7 @@ export const getAuthors = async (req, res, next) => {
       const order = sortOptions[sort] || sortOptions.name;
   
       const { count, rows } = await Author.findAndCountAll({
-        attributes: ['author_name', 'id'], // 일단 id만 반환
+        attributes: ['author_name', 'id', 'introduction_image_url'],
         order: [order],
         limit,
         offset,
@@ -71,6 +71,7 @@ export const getAuthors = async (req, res, next) => {
             const exhibition_count = await Author.getExhibitionCount(author.id);
             authorNameAndCounts[author.author_name] = {
                 author_id: author.id,
+                introduction_image_url: author.introduction_image_url,
                 artwork_count,
                 exhibition_count
             };
