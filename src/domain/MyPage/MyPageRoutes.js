@@ -9,6 +9,16 @@ const router = express.Router();
 router.get('/mypage', verifyToken, async (req, res) => {
     try {
         const email = req.user.email
+
+        // 토큰 오류
+        if (!req.user || !req.user.email) {
+            return res.status(401).json({
+                isSuccess: false,
+                code: 401,
+                message: "토큰이 제공되지 않았거나 유효하지 않습니다.",
+                result: null
+            })
+        }
         
         // 이메일 기반으로 사용자 정보 조회 (id, role 포함)
         const user = await User.findOne({ where: { email }, attributes: ['id', 'role'] });

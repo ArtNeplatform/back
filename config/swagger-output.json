@@ -1449,27 +1449,30 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": true },
+                "isSuccess": { "type": "boolean", "example": true },
                 "code": { "type": "integer", "example": 200 },
                 "message": { "type": "string", "example": "요청에 성공하였습니다." },
-                "totalItems": { "type": "integer", "example": 15 },
-                "totalPages": { "type": "integer", "example": 3 },
-                "currentPage": { "type": "integer", "example": 1 },
                 "result": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": { "type": "integer", "example": 3 },
-                      "title": { "type": "string", "example": "The Ground Gallery" },
-                      "image_url": { 
-                        "type": "string", 
-                        "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/cafcd9e3-e3ba-4cb2-993f-928ccbc652ae.jpg"
-                      },
-                      "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
-                      "end_date": { "type": "string", "format": "date", "example": "2025-03-10" },
-                      "created_at": { "type": "string", "example": "2025-01-30T12:00:00Z" },
-                      "popularity": { "type": "integer", "example": 120 }
+                  "type": "object",
+                  "properties": {
+                    "totalItems": { "type": "integer", "example": 15 },
+                    "totalPages": { "type": "integer", "example": 3 },
+                    "currentPage": { "type": "integer", "example": 1 },
+                    "exhibitions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "integer", "example": 3 },
+                          "title": { "type": "string", "example": "The Ground Gallery" },
+                          "image_url": { 
+                            "type": "string", 
+                            "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/exhibition1.jpg"
+                          },
+                          "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
+                          "end_date": { "type": "string", "format": "date", "example": "2025-03-10" }
+                        }
+                      }
                     }
                   }
                 }
@@ -1481,22 +1484,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": false },
+                "isSuccess": { "type": "boolean", "example": false },
                 "code": { "type": "integer", "example": 400 },
-                "message": { "type": "string", "example": "잘못된 정렬 기준입니다. (지원됨: name, latest, popular)" },
-                "result": { "type": "array", "example": [] }
-              }
-            }
-          },
-          "404": {
-            "description": "전시 데이터를 찾을 수 없음",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 404 },
-                "message": { "type": "string", "example": "전시 데이터를 찾을 수 없습니다." },
-                "result": { "type": "array", "example": [] }
+                "message": { "type": "string", "example": "잘못된 정렬 기준입니다." },
+                "result": { "type": "null", "example": null }
               }
             }
           },
@@ -1505,10 +1496,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": false },
+                "isSuccess": { "type": "boolean", "example": false },
                 "code": { "type": "integer", "example": 500 },
                 "message": { "type": "string", "example": "서버 오류입니다." },
-                "result": { "type": "array", "example": [] }
+                "result": { "type": "null", "example": null }
               }
             }
           }
@@ -1517,7 +1508,8 @@
       "post": {
         "tags": ["전시"],
         "summary": "전시 등록",
-        "description": "새로운 전시를 등록합니다.",
+        "description": "새로운 전시를 등록합니다. 인증된 사용자만 등록할 수 있습니다.",
+        "security": [{ "BearerAuth": [] }],
         "parameters": [
           {
             "name": "body",
@@ -1526,14 +1518,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "author_id": { "type": "integer", "example": 1 },
                 "title": { "type": "string", "example": "나의 첫 전시" },
-                "image_url": { 
-                  "type": "string", 
-                  "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/exhibition1.jpg" 
-                },
                 "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
-                "end_date": { "type": "string", "format": "date", "example": "2025-03-10" }
+                "end_date": { "type": "string", "format": "date", "example": "2025-03-10" },
+                "image": { "type": "string", "format": "binary", "example": "파일 업로드" }
               }
             }
           }
@@ -1544,23 +1532,20 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": true },
+                "isSuccess": { "type": "boolean", "example": true },
                 "code": { "type": "integer", "example": 201 },
-                "message": { "type": "string", "example": "요청에 성공하였습니다." },
+                "message": { "type": "string", "example": "전시가 성공적으로 등록되었습니다." },
                 "result": {
                   "type": "object",
                   "properties": {
                     "id": { "type": "integer", "example": 5 },
-                    "author_id": { "type": "integer", "example": 1 },
                     "title": { "type": "string", "example": "나의 첫 전시" },
                     "image_url": { 
                       "type": "string", 
                       "example": "https://artne-image.s3.ap-northeast-2.amazonaws.com/exhibition1.jpg" 
                     },
                     "start_date": { "type": "string", "format": "date", "example": "2025-02-15" },
-                    "end_date": { "type": "string", "format": "date", "example": "2025-03-10" },
-                    "created_at": { "type": "string", "example": "2025-02-01T12:00:00Z" },
-                    "updated_at": { "type": "string", "example": "2025-02-01T12:00:00Z" }
+                    "end_date": { "type": "string", "format": "date", "example": "2025-03-10" }
                   }
                 }
               }
@@ -1571,10 +1556,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": false },
+                "isSuccess": { "type": "boolean", "example": false },
                 "code": { "type": "integer", "example": 400 },
-                "message": { "type": "string", "example": "author_id, title, image_url 필드는 필수입니다." },
-                "result": { "type": "array", "example": [] }
+                "message": { "type": "string", "example": "title, image 필드는 필수입니다." },
+                "result": { "type": "null", "example": null }
               }
             }
           },
@@ -1583,28 +1568,36 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": false },
+                "isSuccess": { "type": "boolean", "example": false },
                 "code": { "type": "integer", "example": 500 },
                 "message": { "type": "string", "example": "서버 오류입니다." },
-                "result": { "type": "array", "example": [] }
+                "result": { "type": "null", "example": null }
               }
             }
           }
         }
       }
     },
-    "/api/exhibitions/{exhibitionId}": {
+    "/api/exhibitions/{id}": {
       "get": {
         "tags": ["전시"],
         "summary": "특정 전시 조회",
-        "description": "특정 전시 정보를 조회합니다.",
+        "description": "특정 전시 정보를 조회합니다. 작가의 다른 전시 정보도 함께 제공됩니다.",
         "parameters": [
           {
             "name": "id",
             "in": "path",
-            "type": "integer",
             "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
             "description": "조회할 전시 ID"
+          }
+        ],
+        "security": [
+          {
+            "BearerAuth": []
           }
         ],
         "responses": {
@@ -1613,7 +1606,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": true },
+                "isSuccess": { "type": "boolean", "example": true },
                 "code": { "type": "integer", "example": 200 },
                 "message": { "type": "string", "example": "요청에 성공하였습니다." },
                 "result": {
@@ -1675,25 +1668,33 @@
           },
           "404": {
             "description": "전시를 찾을 수 없음",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 404 },
-                "message": { "type": "string", "example": "전시를 찾을 수 없습니다." },
-                "result": { "type": "array", "example": [] }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSuccess": { "type": "boolean", "example": false },
+                    "code": { "type": "integer", "example": 404 },
+                    "message": { "type": "string", "example": "전시를 찾을 수 없습니다." },
+                    "result": { "type": "null", "example": null }
+                  }
+                }
               }
             }
           },
           "500": {
             "description": "서버 오류",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 500 },
-                "message": { "type": "string", "example": "서버 오류입니다." },
-                "result": { "type": "array", "example": [] }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSuccess": { "type": "boolean", "example": false },
+                    "code": { "type": "integer", "example": 500 },
+                    "message": { "type": "string", "example": "서버 오류입니다." },
+                    "result": { "type": "array", "example": [] }
+                  }
+                }
               }
             }
           }
@@ -1705,28 +1706,19 @@
         "tags": ["전시"],
         "summary": "전시 등록 시 사용 가능한 작품 조회",
         "description": "특정 작가가 등록한 작품 목록을 조회합니다.",
-        "parameters": [
-          {
-            "name": "author_id",
-            "in": "query",
-            "type": "integer",
-            "required": true,
-            "description": "조회할 작가 ID"
-          }
-        ],
+        "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": {
             "description": "작품 목록 조회 성공",
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": true },
+                "isSuccess": { "type": "boolean", "example": true },
                 "code": { "type": "integer", "example": 200 },
                 "message": { "type": "string", "example": "작품 목록 조회 성공" },
                 "result": {
                   "type": "object",
                   "properties": {
-                    "author_id": { "type": "integer", "example": 1 },
                     "artworks": {
                       "type": "array",
                       "items": {
@@ -1796,7 +1788,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "success": { "type": "boolean", "example": true },
+                "isSuccess": { "type": "boolean", "example": true },
                 "code": { "type": "integer", "example": 200 },
                 "message": { "type": "string", "example": "전시 배경 목록 조회 성공" },
                 "result": {
@@ -1831,56 +1823,95 @@
         }
       }
     },
-    "/api/mypage/{user_id}": {
+    "/api/mypage": {
       "get": {
         "tags": ["마이페이지"],
         "summary": "마이페이지 조회",
-        "description": "특정 사용자의 마이페이지 정보를 조회합니다.",
-        "parameters": [
+        "description": "현재 로그인한 사용자의 마이페이지 정보를 조회합니다. 토큰을 통해 사용자 ID를 자동으로 가져옵니다.",
+        "security": [
           {
-            "name": "user_id",
-            "in": "path",
-            "type": "integer",
-            "required": true,
-            "description": "조회할 사용자 ID"
+            "BearerAuth": []
           }
         ],
         "responses": {
           "200": {
             "description": "마이페이지 조회 성공",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": true },
-                "code": { "type": "integer", "example": 200 },
-                "message": { "type": "string", "example": "요청에 성공하였습니다." },
-                "result": {
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "paymentCounts": {
+                    "isSuccess": { "type": "boolean", "example": true },
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "요청에 성공하였습니다." },
+                    "result": {
                       "type": "object",
                       "properties": {
-                        "pending": { "type": "integer", "example": 2 },
-                        "completed": { "type": "integer", "example": 5 },
-                        "received": { "type": "integer", "example": 3 }
-                      }
-                    },
-                    "auctions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "artwork_id": { "type": "integer", "example": 10 },
-                          "title": { "type": "string", "example": "숲의 빛" },
-                          "author": {
+                        "buyer": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string", "example": "김지훈" },
+                            "profile_image": { "type": "string", "example": "https://s3.amazonaws.com/profile/kimjihun.jpg" }
+                          }
+                        },
+                        "paymentCounts": {
+                          "type": "object",
+                          "properties": {
+                            "pending": { "type": "integer", "example": 2 },
+                            "completed": { "type": "integer", "example": 5 },
+                            "received": { "type": "integer", "example": 3 }
+                          }
+                        },
+                        "auctions": {
+                          "type": "array",
+                          "items": {
                             "type": "object",
                             "properties": {
-                              "name": { "type": "string", "example": "김지현" }
+                              "artwork_id": { "type": "integer", "example": 12 },
+                              "end_date": { "type": "string", "example": "2025-02-20" },
+                              "price": { "type": "integer", "example": 500000 },
+                              "status": { "type": "string", "example": "완료" },
+                              "Artwork": {
+                                "type": "object",
+                                "properties": {
+                                  "title": { "type": "string", "example": "Sunset" },
+                                  "author": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": { "type": "string", "example": "박하늘" },
+                                      "profile_image": { "type": "string", "example": "https://s3.amazonaws.com/profile/parkhaneul.jpg" }
+                                    }
+                                  }
+                                }
+                              }
                             }
-                          },
-                          "end_date": { "type": "string", "example": "2023-12-25T00:00:00Z" },
-                          "price": { "type": "integer", "example": 1200000 },
-                          "status": { "type": "string", "example": "응찰중" }
+                          }
+                        },
+                        "payments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "payment_id": { "type": "integer", "example": 23 },
+                              "artwork_id": { "type": "integer", "example": 8 },
+                              "price": { "type": "integer", "example": 200000 },
+                              "created_at": { "type": "string", "example": "2025-01-30" },
+                              "status": { "type": "string", "example": "결제 완료" },
+                              "Artwork": {
+                                "type": "object",
+                                "properties": {
+                                  "title": { "type": "string", "example": "Ocean View" },
+                                  "author": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": { "type": "string", "example": "이서연" },
+                                      "profile_image": { "type": "string", "example": "https://s3.amazonaws.com/profile/leeseoyeon.jpg" }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -1891,37 +1922,65 @@
           },
           "400": {
             "description": "잘못된 사용자 역할",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 400 },
-                "message": { "type": "string", "example": "잘못된 사용자 역할입니다." },
-                "result": { "type": "array", "example": [] }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSuccess": { "type": "boolean", "example": false },
+                    "code": { "type": "integer", "example": 400 },
+                    "message": { "type": "string", "example": "잘못된 사용자 역할입니다." },
+                    "result": { "type": "null", "example": null }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 (토큰 없음)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSuccess": { "type": "boolean", "example": false },
+                    "code": { "type": "integer", "example": 401 },
+                    "message": { "type": "string", "example": "토큰이 제공되지 않았거나 유효하지 않습니다." },
+                    "result": { "type": "null", "example": null }
+                  }
+                }
               }
             }
           },
           "404": {
             "description": "사용자를 찾을 수 없음",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 404 },
-                "message": { "type": "string", "example": "사용자를 찾을 수 없습니다." },
-                "result": { "type": "array", "example": [] }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSuccess": { "type": "boolean", "example": false },
+                    "code": { "type": "integer", "example": 404 },
+                    "message": { "type": "string", "example": "사용자를 찾을 수 없습니다." },
+                    "result": { "type": "null", "example": null }
+                  }
+                }
               }
             }
           },
           "500": {
             "description": "서버 오류",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": { "type": "boolean", "example": false },
-                "code": { "type": "integer", "example": 500 },
-                "message": { "type": "string", "example": "서버 오류입니다." },
-                "result": { "type": "array", "example": [] }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isSuccess": { "type": "boolean", "example": false },
+                    "code": { "type": "integer", "example": 500 },
+                    "message": { "type": "string", "example": "서버 오류입니다." },
+                    "result": { "type": "null", "example": null }
+                  }
+                }
               }
             }
           }

@@ -126,6 +126,89 @@ router.post('/exhibitions', verifyToken, uploadMiddleware, async (req, res) => {
   }
 });
 
+// 전시 상세 조회 API
+router.get('/exhibitions/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id; // 토큰에서 가져온 사용자 ID
+
+    // 전시 정보 조회 (작품 및 작가 포함)
+    const exhibition = await Exhibition.findByPk(id, {
+      include: [
+        {
+          model: Artwork,
+          as: 'artworks',
+          attributes: ['id', 'title', 'thumbnail_image_url']
+        },
+        {
+          model: Author,
+          as: 'author',
+          attributes: ['id', 'name', 'profile_image_url']
+        }
+      ]
+    });
+
+    // 전시가 없을 경우
+    if (!exhibition) {
+      return res.status(404).json({
+        isSuccess: false,
+        code: 404,
+        message: "전시를 찾을 수 없습니다.",
+        result: null
+      });
+    }
+
+    // 해당 작가의 다른 전시 정보 조회 (현재 전시 제외)
+    const otherGalleries = await Exhibition.findAll({
+      where: { author_id: exhibition.author.id, id: { [Op.ne]: id } }, // 현재 전시 제외
+      attributes: ['id', 'title', 'image_url'],
+      limit: 3 // 최대 3개만 가져오기
+    });
+
+    // 응답 데이터 구성
+    const formattedExhibition = {
+      id: exhibition.id,
+      title: exhibition.title,
+      image_url: exhibition.image_url,
+      start_date: exhibition.start_date,
+      end_date: exhibition.end_date,
+      created_at: exhibition.created_at,
+      popularity: exhibition.popularity,
+      author: {
+        id: exhibition.author.id,
+        author_name: exhibition.author.name,
+        author_image_url: exhibition.author.profile_image_url,
+        otherGalleries: otherGalleries.map(gallery => ({
+          id: gallery.id,
+          title: gallery.title,
+          image_url: gallery.image_url
+        })),
+        artworks: exhibition.artworks.map(artwork => ({
+          id: artwork.id,
+          title: artwork.title,
+          image_url: artwork.thumbnail_image_url
+        }))
+      }
+    };
+
+    res.status(200).json({
+      isSuccess: true,
+      code: 200,
+      message: "전시 상세 조회 성공",
+      result: formattedExhibition
+    });
+
+  } catch (error) {
+    console.error("Error fetching exhibition details:", error);
+    res.status(500).json({
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null
+    });
+  }
+});
+
 // 전시 수정 API
 router.put('/exhibitions/:id', verifyToken, uploadMiddleware, async (req, res) => {
   try {
