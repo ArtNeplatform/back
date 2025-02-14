@@ -94,6 +94,7 @@ router.post('/exhibitions', verifyToken, upload.array('exhibition_image', 1), as
 
 
 
+
 //전시 상세 조회 API
 router.get('/exhibitions/:exhibition_id', async (req, res) => {
   try {
