@@ -32,17 +32,30 @@ export const scheduleAuctionEnd = (auction) => {
   nodeSchedule.scheduleJob(endTime, async () => {
     try {
       const currentAuction = await Auction.findByPk(auction.id);
-      if (currentAuction && !currentAuction.final_price) {
-        currentAuction.final_price = currentAuction.current_price;
-        await currentAuction.save();
+      if (!currentAuction || currentAuction.final_price) return;
 
-        broadcastToClients(status.SUCCESS, {
+      currentAuction.final_price = currentAuction.current_price;
+      await currentAuction.save();
+
+      const winningBid = await AuctionBid.findOne({
+        where: { auction_id: auction.id, status: 'BID' },
+        order: [['bid_price', 'DESC']],
+      });
+
+      if (winningBid) {
+        await Payment.create({
+          user_id: winningBid.user_id,
           auction_id: currentAuction.id,
-          status: '경매 완료',
-          final_price: currentAuction.final_price,
-          end_time: currentAuction.end_time,
+          payment_price: currentAuction.final_price,
+          payment_status: 'PENDING',
         });
       }
+      broadcastToClients(status.SUCCESS, {
+        auction_id: currentAuction.id,
+        status: '경매 완료',
+        final_price: currentAuction.final_price,
+        end_time: currentAuction.end_time,
+      });
     } catch (error) {
       console.error(`경매 종료 처리 중 에러 발생 (경매 ID ${auction.id}):`, error);
     }
