@@ -1,5 +1,6 @@
 import express from 'express';
 import Exhibition from './ExhibitionModel.js'; // Exhibition 모델 불러오기
+import FavoriteExhibition from '../Favorite/FavoriteExhibitionModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';  // 작가의 작품 리스트 가져오기
 import Author from '../Author/AuthorModel.js';
 import User from '../User/UserModel.js';
@@ -99,6 +100,7 @@ router.post('/exhibitions', verifyToken, upload.array('exhibition_image', 1), as
 router.get('/exhibitions/:exhibition_id', async (req, res) => {
   try {
     const { exhibition_id } = req.params;
+    const user_id = req.user.id;
 
     const exhibition = await Exhibition.findOne({
       attributes: ['id', 'title', 'image_url', 'author_id'],
@@ -117,6 +119,11 @@ router.get('/exhibitions/:exhibition_id', async (req, res) => {
     if (!author) {
       return sendResponse(res, status.AUTHOR_NOT_FOUND);
     }
+
+    // 사용자가 해당 전시를 마이컬렉션에 추가했는지 확인
+    const isFavorite = await FavoriteExhibition.findOne({
+      where: { user_id, exhibition_id },
+    });
 
     const authorExhibitions = await Exhibition.findAll({
       attributes: ['id', 'title', 'image_url'],
@@ -140,6 +147,7 @@ router.get('/exhibitions/:exhibition_id', async (req, res) => {
         exhibition_id: exhibition.id,
         title: exhibition.title,
         image_url: exhibition.image_url,
+        is_favorite: !!isFavorite, // 마이컬렉션 추가 여부
       },
       author: {
         author_id: exhibition.author_id,
@@ -163,6 +171,87 @@ router.get('/exhibitions/:exhibition_id', async (req, res) => {
   }
 });
 
+// 마이컬렉션 추가 API
+router.post('/exhibitions/:exhibition_id/favorite', verifyToken, async (req, res) => {
+  try {
+      const { email } = req.user;
+      const user = await User.findOne({ where: { email } });
+  
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      const user_id = user.id;
+      const exhibition_id = Number(req.query.exhibition_id); // id는 숫자로 변환
+
+      if (isNaN(exhibition_id)) {
+        return res.status(400).json({ message: "Invalid exhibition_id" });
+      }
+  
+      // Exhibition 테이블의 id 컬럼과 매칭 확인
+      const existingExhibition = await Exhibition.findOne({ where: { id: exhibition_id } });
+  
+      if (!existingExhibition) {
+        return res.status(400).json({ message: "해당 전시는 존재하지 않습니다." });
+      }
+  
+      // FavoriteExhibitions 테이블에서 exhibition_id가 존재하는지 체크
+      const existingFavorite = await FavoriteExhibition.findOne({
+        where: { user_id, exhibition_id } // exhibition_id가 존재하는지 확인
+      });
+  
+      if (existingFavorite) {
+        return res.status(400).json({ message: "이미 마이컬렉션에 추가된 전시입니다." });
+      }
+  
+      // FavoriteExhibitions 테이블에 데이터 삽입
+      await FavoriteExhibition.create({
+        user_id,
+        exhibition_id, // FavoriteExhibitions의 외래 키
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      return res.status(200).json({ message: "마이컬렉션에 추가되었습니다." });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "서버 오류" });
+  }
+});
+
+// 마이컬렉션 제거 API
+router.delete('/exhibitions/:exhibition_id/favorite', verifyToken, async (req, res) => {
+  try {
+      const { email } = req.user;
+      const user = await User.findOne({ where: { email } });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const user_id = user.id;
+      const exhibition_id = Number(req.query.exhibition_id); // id를 숫자로 변환
+
+      if (isNaN(exhibition_id)) {
+        return res.status(400).json({ message: "Invalid exhibition_id" });
+      }
+
+      // FavoriteExhibitions 테이블에서 해당 전시가 존재하는지 체크
+      const favorite = await FavoriteExhibition.findOne({ where: { user_id, exhibition_id } });
+
+      if (!favorite) {
+          return res.status(404).json({ message: "마이컬렉션에 없는 전시입니다." });
+      }
+
+      // 데이터 삭제
+      await favorite.destroy();
+
+      return res.status(200).json({ message: "마이컬렉션에서 제거되었습니다." });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: "서버 오류" });
+  }
+});
 
 // 전시 수정 API
 router.put('/exhibitions/:id', verifyToken, uploadMiddleware, async (req, res) => {

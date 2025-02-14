@@ -122,6 +122,45 @@ class Exhibition extends Model {
         throw error;
       }
     }
+
+    // 특정 전시가 사용자의 "마이컬렉션"에 추가되었는지 체크
+    static async getExhibitionDetail(exhibition_id, user_id) {
+      try {
+          const exhibition = await Exhibition.findOne({
+              attributes: ['id', 'title', 'image_url', 'author_id'],
+              where: { id: exhibition_id },
+          });
+
+          if (!exhibition) {
+              return null;
+          }
+
+          const author = await Author.findOne({
+              attributes: ['author_name', 'author_image_url'],
+              where: { id: exhibition.author_id },
+          });
+
+          const isFavorite = await FavoriteExhibition.findOne({
+              where: { user_id, exhibition_id },
+          });
+
+          return {
+              exhibition: {
+                  exhibition_id: exhibition.id,
+                  title: exhibition.title,
+                  image_url: exhibition.image_url,
+                  is_favorite: !!isFavorite, // `true` or `false`
+              },
+              author: {
+                  author_id: exhibition.author_id,
+                  name: author.author_name,
+                  image_url: author.author_image_url,
+              },
+          };
+      } catch (error) {
+          throw error;
+      }
+    }
 }
 // 모델 정의
 Exhibition.init(
