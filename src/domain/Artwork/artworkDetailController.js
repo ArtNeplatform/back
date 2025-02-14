@@ -28,7 +28,6 @@ export const getArtworkDetails = async (req, res) => {
       where: { id: artworkId },
       include: [
         { model: Author, as: 'author', attributes: ['id', 'author_name', 'author_image_url', 'work_style'] },
-        { model: ArtworkImage, as: 'images', attributes: ['image_url'], where: { artwork_id: artworkId } },
       ],
     });
 
@@ -56,11 +55,20 @@ export const getArtworkDetails = async (req, res) => {
     const artworkCount = await Artwork.count({ where: { author_id: author?.id } });
     const exhibitionCount = await Exhibition.count({ where: { author_id: author?.id } });
 
+    // ArtworkImage에서 해당 artworkId에 맞는 이미지들 가져오기
+    const artworkImages = await ArtworkImage.findAll({
+      where: { artwork_id: artworkId },
+      attributes: ['image_url'],
+    });
+
+    // 작품의 thumbnail_image_url을 artwork_image에 포함
+    const artworkImageUrls = [artwork.thumbnail_image_url, ...artworkImages.map((image) => image.image_url)];
+
     const responseData = {
       fixed_info: {  
         author_name: author?.author_name || 'Unknown',  
         artwork_title: artwork.title,  
-        artwork_image: artwork.images.map((image) => image.image_url),  
+        artwork_image: artworkImageUrls,  // thumbnail_image_url과 ArtworkImage의 image_url 포함
         year: artwork.year,
         dimensions: `${formatNumber(artwork.height)} x ${formatNumber(artwork.width)} cm`,
         material: artwork.material,

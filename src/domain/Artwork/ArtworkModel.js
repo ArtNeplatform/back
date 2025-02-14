@@ -93,7 +93,7 @@ Artwork.init(
     genre: { type: DataTypes.STRING },
     frame: { type: DataTypes.STRING, comment: '액자 정보' },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updatead_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   {
     sequelize, // Sequelize 인스턴스 전달
