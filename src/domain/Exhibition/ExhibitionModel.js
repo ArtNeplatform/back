@@ -4,27 +4,47 @@ import Author from '../Author/AuthorModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
 
 class Exhibition extends Model {
-    // 전시 리스트 조회 (페이징 및 정렬 포함)
-    static async getExhibitions(sortBy = 'name', page = 1, limit = 6) {
-      try {
-        let order = [['title', 'ASC']]; // 기본 정렬: 이름순
-        if (sortBy === 'latest') order = [['created_at', 'DESC']];
-        if (sortBy === 'popular') order = [['popularity', 'DESC']];
 
-        const offset = (page - 1) * limit;
-        const { count, rows } = await Exhibition.findAndCountAll({
-            attributes: ['id', 'title', 'image_url', 'created_at', 'popularity', 'start_date', 'end_date'],
-            order,
-            limit,
-            offset,
-            include: [{ model: Artwork, as: 'artworks' }], // 작품 포함
-        });
-
-        return { totalItems: count, totalPages: Math.ceil(count / limit), data: rows };
-    } catch (error) {
-        throw error;
+  //전시 조회
+  static async getExhibitions(sort = 'name') {
+    try {
+      const currentDate = new Date(); 
+  
+      let orderCondition;
+      switch (sort) {
+        case 'popular':  // 인기순
+          orderCondition = [['popularity', 'DESC']];
+          break;
+        case 'latest':  // 최신순
+          orderCondition = [['start_date', 'DESC']];
+          break;
+        default:  // 이름순
+          orderCondition = [['title', 'ASC']];
+          break;
       }
+  
+      const exhibitions = await Exhibition.findAll({
+        attributes: [
+          ['id', 'exhibition_id'],      
+          'title', 
+          'image_url' 
+        ],
+        where: {
+          end_date: {
+            [Op.gte]: currentDate 
+          }
+        },
+        order: orderCondition  
+      });
+  
+      return exhibitions;  
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
+  }
+  
+  
 
     // 전시 등록 (작품 연결 포함)
     static async createExhibition({ author_id, gallery_id = 1, title, artworks, start_date, end_date }) {

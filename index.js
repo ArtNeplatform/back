@@ -27,7 +27,7 @@ import artworkList from './src/domain/Artwork/artworkListRoutes.js';
 import mainHomeRoutes from './src/domain/Artwork/mainHomeRoutes.js';
 import userRoutes from './src/domain/User/userRoutes.js';
 import exhibitionRoutes from './src/domain/Exhibition/exhibitionRoutes.js';
-import myPageRoutes from './src/domain/MyPage/myPageRoutes.js';
+import myPageRoutes from './src/domain/MyPage/MyPageRoutes.js';
 import paymentRoutes from './src/domain/Payment/PaymentRoutes.js';
 
 const app = express();

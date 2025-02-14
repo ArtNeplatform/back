@@ -9,6 +9,7 @@ import { response } from '../../../config/response.js';
 import { status } from '../../../config/response.status.js';
 import { BaseError } from '../../../config/error.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
+import { sendResponse } from '../../../config/response.js';
 
 const router = express.Router();
 
@@ -36,50 +37,22 @@ const uploadImageToS3 = async (image) => {
 // 전시 리스트 조회 API
 router.get('/exhibitions', async (req, res) => {
   try {
-    const sortBy = req.query.sortBy || 'name';
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6;
+    const sort = req.query.sort || 'title';  
+    const result = await Exhibition.getExhibitions(sort);
 
-    const validSortOptions = ['name', 'latest', 'popular'];
-    if (!validSortOptions.includes(sortBy)) {
-      return res.status(400).json({
-        isSuccess: false,
-        code: 400,
-        message: `잘못된 정렬 기준입니다. (지원됨: ${validSortOptions.join(', ')})`,
-        result: null,
-      });
+    if (!result || result.length === 0) {
+      return sendResponse(res, status.NOT_FOUND);
     }
 
-    const { totalItems, totalPages, result } = await Exhibition.getExhibitions(sortBy, page, limit);
-
-    // if (result.length === 0) {
-    //   return res.status(404).json({ success: false, message: '전시 데이터를 찾을 수 없습니다.' });
-    // }
-    if (!result || !Array.isArray(result) || result.length === 0) {
-      return res.status(404).json({ 
-        isSuccess: false,
-        code: 404,
-        message: "No exhibitions found",
-        result: null,
-       });
-    }
-
-    res.status(200).json({ 
-      isSuccess: true,
-      code: 200,
-      message: "전시 리스트 조회 성공",
-      result: { totalItems, totalPages, currentPage: page, exhibitions: result },
-     });
+    return sendResponse(res, status.SUCCESS, result);
+    
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ 
-      isSuccess: false,
-      code: 500,
-      message: '서버 오류입니다.',
-      result: null,
-     });
+    console.error('전시 조회 에러:', error);
+    return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 });
+
+
 
 // 전시 등록 API
 router.post('/exhibitions', verifyToken, uploadMiddleware, async (req, res) => {
