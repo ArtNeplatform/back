@@ -1,6 +1,7 @@
 import express from 'express';
 import Exhibition from './ExhibitionModel.js'; // Exhibition 모델 불러오기
-import Artwork from '../Artwork/Artwork.js';  // 작가의 작품 리스트 가져오기
+import Artwork from '../Artwork/ArtworkModel.js';  // 작가의 작품 리스트 가져오기
+import Author from '../Author/AuthorModel.js';
 import uploadMiddleware from '../../../config/uploadMiddleware.js';
 import s3 from '../../../config/aws.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,6 +11,7 @@ import { status } from '../../../config/response.status.js';
 import { BaseError } from '../../../config/error.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
 import { sendResponse } from '../../../config/response.js';
+import { Sequelize, Op } from 'sequelize';
 
 const router = express.Router();
 
@@ -99,88 +101,74 @@ router.post('/exhibitions', verifyToken, uploadMiddleware, async (req, res) => {
   }
 });
 
-// 전시 상세 조회 API
-router.get('/exhibitions/:id', verifyToken, async (req, res) => {
+//전시 상세 조회 API
+router.get('/exhibitions/:exhibition_id', async (req, res) => {
   try {
-    const { id } = req.params;
-    const user_id = req.user.id; // 토큰에서 가져온 사용자 ID
+    const { exhibition_id } = req.params;
 
-    // 전시 정보 조회 (작품 및 작가 포함)
-    const exhibition = await Exhibition.findByPk(id, {
-      include: [
-        {
-          model: Artwork,
-          as: 'artworks',
-          attributes: ['id', 'title', 'thumbnail_image_url']
-        },
-        {
-          model: Author,
-          as: 'author',
-          attributes: ['id', 'name', 'profile_image_url']
-        }
-      ]
+    const exhibition = await Exhibition.findOne({
+      attributes: ['id', 'title', 'image_url', 'author_id'],
+      where: { id: exhibition_id },
     });
 
-    // 전시가 없을 경우
     if (!exhibition) {
-      return res.status(404).json({
-        isSuccess: false,
-        code: 404,
-        message: "전시를 찾을 수 없습니다.",
-        result: null
-      });
+      return sendResponse(res, status.EXHIBITION_NOT_FOUND);
     }
 
-    // 해당 작가의 다른 전시 정보 조회 (현재 전시 제외)
-    const otherGalleries = await Exhibition.findAll({
-      where: { author_id: exhibition.author.id, id: { [Op.ne]: id } }, // 현재 전시 제외
-      attributes: ['id', 'title', 'image_url'],
-      limit: 3 // 최대 3개만 가져오기
+    const author = await Author.findOne({
+      attributes: ['author_name', 'author_image_url'],
+      where: { id: exhibition.author_id },
     });
 
-    // 응답 데이터 구성
-    const formattedExhibition = {
-      id: exhibition.id,
-      title: exhibition.title,
-      image_url: exhibition.image_url,
-      start_date: exhibition.start_date,
-      end_date: exhibition.end_date,
-      created_at: exhibition.created_at,
-      popularity: exhibition.popularity,
-      author: {
-        id: exhibition.author.id,
-        author_name: exhibition.author.name,
-        author_image_url: exhibition.author.profile_image_url,
-        otherGalleries: otherGalleries.map(gallery => ({
-          id: gallery.id,
-          title: gallery.title,
-          image_url: gallery.image_url
-        })),
-        artworks: exhibition.artworks.map(artwork => ({
-          id: artwork.id,
-          title: artwork.title,
-          image_url: artwork.thumbnail_image_url
-        }))
-      }
-    };
+    if (!author) {
+      return sendResponse(res, status.AUTHOR_NOT_FOUND);
+    }
 
-    res.status(200).json({
-      isSuccess: true,
-      code: 200,
-      message: "전시 상세 조회 성공",
-      result: formattedExhibition
+    const authorExhibitions = await Exhibition.findAll({
+      attributes: ['id', 'title', 'image_url'],
+      where: {
+        author_id: exhibition.author_id,
+        id: { [Op.ne]: exhibition.id },
+      },
+      order: Sequelize.fn('RAND'),
+      limit: 2,
+    });
+
+    const authorArtworks = await Artwork.findAll({
+      attributes: ['id', 'thumbnail_image_url'],
+      where: { author_id: exhibition.author_id },
+      order: Sequelize.fn('RAND'),
+      limit: 4,
+    });
+
+    return sendResponse(res, status.SUCCESS, {
+      exhibition: {
+        exhibition_id: exhibition.id,
+        title: exhibition.title,
+        image_url: exhibition.image_url,
+      },
+      author: {
+        author_id: exhibition.author_id,
+        name: author.author_name,
+        image_url: author.author_image_url,
+      },
+      author_exhibitions: authorExhibitions.map((exhibition) => ({
+        exhibition_id: exhibition.id,
+        title: exhibition.title,
+        image_url: exhibition.image_url,
+      })),
+      author_artworks: authorArtworks.map((artwork) => ({
+        artwork_id: artwork.id,
+        image_url: artwork.thumbnail_image_url,
+      })),
     });
 
   } catch (error) {
-    console.error("Error fetching exhibition details:", error);
-    res.status(500).json({
-      isSuccess: false,
-      code: 500,
-      message: "서버 오류입니다.",
-      result: null
-    });
+    console.error("Error occurred:", error);  
+    return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 });
+
 
 // 전시 수정 API
 router.put('/exhibitions/:id', verifyToken, uploadMiddleware, async (req, res) => {
@@ -335,6 +323,5 @@ router.get('/exhibitions/artworks', verifyToken, async (req, res) => {
      });
   }
 });
-
 
 export default router;
