@@ -338,3 +338,50 @@ export const updateAuthorProfile = async (req, res) => {
         return sendResponse(res, status.INTERNAL_SERVER_ERROR);
     }
 };
+
+// 작가 작품 목록 조회 API
+export const getAuthorArtworks = async (req, res) => {
+    try {
+        const email = req.user.email
+        const user = await User.findOne({ where: { email }, attributes: ['id'] });
+
+        if (!user) {
+            throw new Error('MEMBER_NOT_FOUND');
+        }
+
+        const user_id = user.id;
+
+        console.log("test");
+
+        console.log('user_id:', user);
+
+        const author = await Author.findOne({ where: { user_id } });
+
+        if (!author) {
+            throw new Error('AUTHOR_NOT_FOUND');
+        }
+
+        
+
+        //id, title, image_url
+        const artworks = await Artwork.findAll({
+            where: { author_id: author.id },
+            attributes: ['id', 'title', 'thumbnail_image_url']
+        });
+
+
+        return sendResponse(res, status.SUCCESS, artworks);
+    } catch (error) {
+        console.error('getAuthorArtworks 에러:', error);
+        switch (error.message) {
+            case 'MEMBER_NOT_FOUND':
+                return sendResponse(res, status.MEMBER_NOT_FOUND);
+                break;
+            case 'AUTHOR_NOT_FOUND':
+                return sendResponse(res, status.AUTHOR_NOT_FOUND);
+                break;
+            default:
+                return sendResponse(res, status.INTERNAL_SERVER_ERROR);
+        }
+    }
+};
