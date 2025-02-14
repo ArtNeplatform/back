@@ -23,38 +23,38 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
   timezone : 'Asia/Seoul'
 });
 
-// 모델 초기화
-const initModels = () => {
-  // User(sequelize);
-  // Author(sequelize);
-  UserSpace(sequelize);
-  Agreement(sequelize);
-  Artwork(sequelize);
-  ArtworkCategory(sequelize);
-  ArtworkImage(sequelize);
-  Auction(sequelize);
-  AuctionBid(sequelize);
-  Exhibition(sequelize);
-  FavoriteArtwork(sequelize);
-  FavoriteExhibition(sequelize);
-  //Payment(sequelize);
-};
+// // 모델 초기화
+// const initModels = () => {
+//   // User(sequelize);
+//   // Author(sequelize);
+//   UserSpace(sequelize);
+//   Agreement(sequelize);
+//   Artwork(sequelize);
+//   ArtworkCategory(sequelize);
+//   ArtworkImage(sequelize);
+//   Auction(sequelize);
+//   AuctionBid(sequelize);
+//   Exhibition(sequelize);
+//   FavoriteArtwork(sequelize);
+//   FavoriteExhibition(sequelize);
+//   //Payment(sequelize);
+// };
 
-initModels(); // 모델 초기화
+// initModels(); // 모델 초기화
 
-const removeDuplicateIndexes = async () => {
-  const [results] = await sequelize.query(`
-    SELECT CONCAT('DROP INDEX ', INDEX_NAME, ' ON Users;') AS drop_query
-    FROM information_schema.STATISTICS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'Users'
-      AND INDEX_NAME NOT IN ('PRIMARY', 'email', 'social_id');
-  `);
+// const removeDuplicateIndexes = async () => {
+//   const [results] = await sequelize.query(`
+//     SELECT CONCAT('DROP INDEX ', INDEX_NAME, ' ON Users;') AS drop_query
+//     FROM information_schema.STATISTICS
+//     WHERE TABLE_SCHEMA = DATABASE()
+//       AND TABLE_NAME = 'Users'
+//       AND INDEX_NAME NOT IN ('PRIMARY', 'email', 'social_id');
+//   `);
 
-  for (const row of results) {
-    await sequelize.query(row.drop_query);
-  }
-};
+//   for (const row of results) {
+//     await sequelize.query(row.drop_query);
+//   }
+// };
 
 // 데이터베이스 연결 및 동기화
 const connectSequelize = async () => {
@@ -62,7 +62,7 @@ const connectSequelize = async () => {
     await sequelize.authenticate();
     console.log('Database connected successfully');
 
-    await removeDuplicateIndexes();
+    //await removeDuplicateIndexes();
 
     await sequelize.sync({ alter: true });
     console.log('All models synchronized successfully');
