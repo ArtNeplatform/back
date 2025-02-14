@@ -2,7 +2,9 @@ import express from 'express';
 import Exhibition from './ExhibitionModel.js'; // Exhibition 모델 불러오기
 import Artwork from '../Artwork/ArtworkModel.js';  // 작가의 작품 리스트 가져오기
 import Author from '../Author/AuthorModel.js';
+import User from '../User/UserModel.js';
 import uploadMiddleware from '../../../config/uploadMiddleware.js';
+import upload from '../../../config/upload.js';
 import s3 from '../../../config/aws.js';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
@@ -12,6 +14,7 @@ import { BaseError } from '../../../config/error.js';
 import { verifyToken } from '../../../middlewares/authMiddleware.js';
 import { sendResponse } from '../../../config/response.js';
 import { Sequelize, Op } from 'sequelize';
+
 
 const router = express.Router();
 
@@ -57,49 +60,39 @@ router.get('/exhibitions', async (req, res) => {
 
 
 // 전시 등록 API
-router.post('/exhibitions', verifyToken, uploadMiddleware, async (req, res) => {
+router.post('/exhibitions', verifyToken, upload.array('exhibition_image', 1), async (req, res) => {
   try {
-    const { title, start_date, end_date } = req.body;
-    const author_id = req.user.id; // 토큰에서 가져온 사용자 ID
+    const { title, gallery_id, popularity } = req.body;
+    const files = req.files;
 
-    // 업로드된 파일 가져오기
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json(response(status.UPLOAD_NO_FILE, "전시 이미지는 필수입니다."));
+    if (!files || files.length === 0) {
+      return sendResponse(res, status.UPLOAD_NO_FILE);
     }
 
-    // S3에 이미지 업로드
-    const image_url = await uploadImageToS3(req.files[0]); // 첫 번째 파일만 업로드
+    const imageUrl = await uploadImageToS3(files[0]);
 
-    // 필수 필드 검증
-    if (!title || !image_url) {
-      return res.status(400).json(response(status.BAD_REQUEST, "title, image_url 필드는 필수입니다."));
-    }
+    const { email } = req.user;
+    const user = await User.findOne({ where: { email } });
+    const author_id = user.id;
 
-    // 전시 등록
-    const exhibition = await Exhibition.createExhibition({ 
-      author_id, 
-      title, 
-      image_url, 
-      start_date, 
-      end_date  
+    const exhibition = await Exhibition.create({
+      author_id,
+      gallery_id,
+      title,
+      popularity,
+      start_date: new Date(),
+      end_date: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+      image_url: imageUrl,
     });
 
-    res.status(201).json({ 
-      isSuccess: true,
-      code: 201,
-      message: "전시가 성공적으로 등록되었습니다.",
-      result: exhibition,
-    });
+    return sendResponse(res, status.SUCCESS, null);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ 
-      isSuccess: false,
-      code: 500,
-      message: "서버 오류입니다.",
-      result: null,
-    });
+    console.error('Unexpected Error:', error);
+    return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 });
+
+
 
 //전시 상세 조회 API
 router.get('/exhibitions/:exhibition_id', async (req, res) => {
