@@ -129,7 +129,8 @@ export const getMainHomeData = async (req, res) => {
     // 4. 전시 정보 가져오기
     const ongoingExhibitions = await Exhibition.findAll({
       limit: 7,
-      attributes: ['id', 'image_url', 'title']
+      attributes: ['id', 'image_url', 'title'],
+      order: sequelize.fn('RAND')
     });
 
     const ongoingExhibitionsData = ongoingExhibitions.map(exhibition => ({

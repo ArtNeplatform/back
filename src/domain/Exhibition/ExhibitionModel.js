@@ -1,7 +1,9 @@
 import { DataTypes, Model, Op } from 'sequelize';
+import { Sequelize } from 'sequelize';  
 import sequelize from '../sequelize.js';
 import Author from '../Author/AuthorModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
+
 
 class Exhibition extends Model {
 
