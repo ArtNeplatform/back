@@ -10,7 +10,6 @@ import AuctionBid from './Auction/AuctionBid.js';
 import Exhibition from './Exhibition/Exhibition.js';
 import FavoriteArtwork from './Favorite/FavoriteArtwork.js';
 import FavoriteExhibition from './Favorite/FavoriteExhibition.js';
-import Payment from './Payment/Payment.js';
 import UserSpace from './User/UserSpace.js';
 
 
@@ -38,7 +37,7 @@ const initModels = () => {
   Exhibition(sequelize);
   FavoriteArtwork(sequelize);
   FavoriteExhibition(sequelize);
-  Payment(sequelize);
+  //Payment(sequelize);
 };
 
 initModels(); // 모델 초기화
