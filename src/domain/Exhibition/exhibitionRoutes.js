@@ -97,10 +97,10 @@ router.post('/exhibitions', verifyToken, upload.array('exhibition_image', 1), as
 
 
 //전시 상세 조회 API
+//전시 상세 조회 API
 router.get('/exhibitions/:exhibition_id', async (req, res) => {
   try {
     const { exhibition_id } = req.params;
-    const user_id = req.user.id;
 
     const exhibition = await Exhibition.findOne({
       attributes: ['id', 'title', 'image_url', 'author_id'],
@@ -119,11 +119,6 @@ router.get('/exhibitions/:exhibition_id', async (req, res) => {
     if (!author) {
       return sendResponse(res, status.AUTHOR_NOT_FOUND);
     }
-
-    // 사용자가 해당 전시를 마이컬렉션에 추가했는지 확인
-    const isFavorite = await FavoriteExhibition.findOne({
-      where: { user_id, exhibition_id },
-    });
 
     const authorExhibitions = await Exhibition.findAll({
       attributes: ['id', 'title', 'image_url'],
@@ -147,7 +142,6 @@ router.get('/exhibitions/:exhibition_id', async (req, res) => {
         exhibition_id: exhibition.id,
         title: exhibition.title,
         image_url: exhibition.image_url,
-        is_favorite: !!isFavorite, // 마이컬렉션 추가 여부
       },
       author: {
         author_id: exhibition.author_id,
@@ -170,6 +164,7 @@ router.get('/exhibitions/:exhibition_id', async (req, res) => {
     return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 });
+
 
 // 마이컬렉션 추가 API
 router.post('/exhibitions/:exhibition_id/favorite', verifyToken, async (req, res) => {
