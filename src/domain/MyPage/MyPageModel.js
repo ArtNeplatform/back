@@ -1,9 +1,13 @@
-import { DataTypes, Model, Op } from 'sequelize';
+import { DataTypes, Model, Op, Sequelize } from 'sequelize';
 import sequelize from '../sequelize.js';
 import User from '../User/UserModel.js';
+import Author from '../Author/AuthorModel.js';
 import Artwork from '../Artwork/ArtworkModel.js';
 import Exhibition from '../Exhibition/ExhibitionModel.js';
 import Auction from '../Auction/AuctionModel.js';
+import AuctionBid from '../Auction/AuctionbidModel.js';
+import FavoriteArtwork from '../Favorite/FavoriteArtworkModel.js';
+import FavoriteExhibition from '../Favorite/FavoriteExhibition.js';
 import Payment from '../Payment/Payment.js';
 
 class MyPage extends Model {
@@ -13,7 +17,7 @@ class MyPage extends Model {
             // 사용자 정보 조회 (이름 & 프로필 사진 추가)
             const buyer = await User.findOne({
                 where: { id: user_id },
-                attributes: ['name', 'profile_image']
+                attributes: ['name', 'profile_image_url']
             });
 
             // 결제 진행 상황 카운트
@@ -22,46 +26,67 @@ class MyPage extends Model {
                 attributes: [
                     [sequelize.fn('SUM', sequelize.literal("status = '결제 대기중'")), 'pending'],
                     [sequelize.fn('SUM', sequelize.literal("status = '결제 완료'")), 'completed'],
-                    [sequelize.fn('SUM', sequelize.literal("status = '수령 완료'")), 'received'],
                 ],
                 raw: true,
             });
 
-            // 경매 내역 (최대 3개)
-            const auctions = await Auction.findAll({
-                where: { buyer_id: user_id },
-                attributes: ['artwork_id', 'end_date', 'price', 'status'],
+            // 경매 입찰 내역 (최대 3개)
+            const auctions = await AuctionBid.findAll({
+                where: { user_id: user_id },
+                attributes: ['auction_id', 'bid_date', 'bid_price', 'status'],
                 include: [{
-                    model: Artwork,
-                    attributes: ['title'],
-                    include: [{ model: User, as: 'author', attributes: ['name', 'profile_image'] }]
+                    model: Auction,
+                    as: 'auction',
+                    attributes: ['artwork_id'],  // Auction에서 artwork_id 가져오기
+                    include: [{
+                        model: Artwork,
+                        as: 'artwork',
+                        attributes: ['title'],
+                        include: [{ model: Author, as: 'author', attributes: ['author_name', 'author_image_url'] }]
+                    }]
                 }],
-                limit: 3, order: [['end_date', 'DESC']],
+                limit: 3, order: [['bid_date', 'DESC']],
             });
 
             // 결제 내역 (최대 3개) + `payment_id` 추가
             const payments = await Payment.findAll({
                 where: { buyer_id: user_id },
-                attributes: ['id', 'artwork_id', 'price', 'created_at', 'status'], // ✅ `id`를 `payment_id`로 포함
+                attributes: ['id', 'auction_id', 'payment_price', 'created_at', 'payment_status'], 
                 include: [{
                     model: Artwork,
+                    as: 'artwork',
                     attributes: ['title'],
-                    include: [{ model: User, as: 'author', attributes: ['name', 'profile_image'] }]
+                    include: [{ model: User, as: 'author', attributes: ['author_name', 'profile_image_url'] }]
                 }],
                 limit: 3, order: [['created_at', 'DESC']],
             });
 
-            // 좋아요한 작품 & 전시
+            // 좋아요한 작품 조회
+            const likedArtworks = await FavoriteArtwork.findAll({
+                where: { user_id: user_id },
+                attributes: ['artwork_id'],
+                include: [{
+                    model: Artwork,
+                    as: 'artwork',
+                    attributes: ['id', 'title', 'thumbnail_image_url', 'height', 'width'],
+                    include: [{ model: Author, as: 'author', attributes: ['author_name', 'profile_image_url'] }]
+                }]
+            });
+
+            // 좋아요한 전시 조회
+            const likedExhibitions = await FavoriteExhibition.findAll({
+                where: { user_id: user_id },
+                attributes: ['exhibition_id'],
+                include: [{
+                    model: Exhibition,
+                    as: 'exhibition',
+                    attributes: ['id', 'title', 'image_url']
+                }]
+            });
+
             const myCollection = {
-                artworks: await Artwork.findAll({
-                    where: { liked_by: user_id },
-                    attributes: ['id', 'title', 'image_url', 'size'],
-                    include: [{ model: User, as: 'author', attributes: ['name', 'profile_image'] }],
-                }),
-                exhibitions: await Exhibition.findAll({
-                    where: { attended_by: user_id },
-                    attributes: ['exhi_id', 'title', 'image_url'],
-                }),
+                artworks: likedArtworks.map(item => item.artwork),
+                exhibitions: likedExhibitions.map(item => item.exhibition),
             };
 
             return { buyer, paymentCounts, auctions, payments, myCollection };
@@ -76,30 +101,36 @@ class MyPage extends Model {
             // 작가 프로필 정보 조회 (이름 & 프로필 사진 추가)
             const author = await User.findOne({
                 where: { id: user_id, role: 'AUTHOR' },
-                attributes: ['name', 'profile_image', 'affiliation']
+                attributes: ['name', 'profile_image_url']
             });
-
-            // 경매 내역 조회
-            const auctions = await Auction.findAll({
-                where: { author_id: user_id },
-                attributes: ['artwork_id', 'end_date', 'price', 'status'],
+            
+            // 경매 입찰 내역 조회 (최대 3개)
+            const auctions = await AuctionBid.findAll({
+                where: { user_id: user_id },
+                attributes: ['auction_id', 'bid_date', 'bid_price', 'status'],
                 include: [{
-                    model: Artwork,
-                    attributes: ['title'],
-                    include: [{ model: User, as: 'author', attributes: ['name', 'profile_image'] }]
+                    model: Auction,
+                    as: 'auction',
+                    attributes: ['artwork_id'],  // Auction에서 artwork_id 가져오기
+                    include: [{
+                        model: Artwork,
+                        as: 'artwork',
+                        attributes: ['title'],
+                        include: [{ model: Author, as: 'author', attributes: ['author_name', 'author_image_url'] }]
+                    }]
                 }],
-                order: [['end_date', 'DESC']],
+                limit: 3, order: [['bid_date', 'DESC']],
             });
 
             // 작가의 작품 & 전시 목록 조회
             const storage = {
                 artworks: await Artwork.findAll({
                     where: { author_id: user_id },
-                    attributes: ['id', 'title', 'image_url', 'size']
+                    attributes: ['id', 'title', 'thumbnail_image_url', 'height', 'width']
                 }),
                 exhibitions: await Exhibition.findAll({
                     where: { author_id: user_id },
-                    attributes: ['exhi_id', 'title', 'image_url']
+                    attributes: ['id', 'title', 'image_url']
                 }),
             };
 
