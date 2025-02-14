@@ -47,10 +47,10 @@ export const kakaoOAuthRedirectSignup = async (req, res, next) => {
         const { code } = req.query;
     
         //redirect to frontend page with qureystring code
-        res.redirect(SERVER_URI + '/register/redirect?code=' + code + '&social_type=KAKAO');
+        res.redirect(FRONTEND_URI + '/register/redirect?code=' + code + '&social_type=KAKAO');
     }
     catch(error) {
-        res.redirect(SERVER_URI + '/register/error');
+        res.redirect(FRONTEND_URI + '/register/error');
     }
 }
 
@@ -60,10 +60,10 @@ export const kakaoOAuthRedirectLogin = async (req, res, next) => {
         const { code } = req.query;
 
         //redirect to frontend page with qureystring code
-        res.redirect(SERVER_URI + '/login/redirect?code=' + code + '&social_type=KAKAO');
+        res.redirect(FRONTEND_URI + '/login/redirect?code=' + code + '&social_type=KAKAO');
     }
     catch(error) {
-        res.redirect(SERVER_URI + '/login/error');
+        res.redirect(FRONTEND_URI + '/login/error');
     }
 }
 
@@ -88,10 +88,10 @@ export const googleOAuthRedirectSignup = async (req, res, next) => {
         const { code } = req.query;
 
         //redirect to frontend page with qureystring code
-        res.redirect(SERVER_URI + '/register/redirect?code=' + code + '&social_type=GOOGLE');
+        res.redirect(FRONTEND_URI + '/register/redirect?code=' + code + '&social_type=GOOGLE');
     }
     catch(error) {
-        res.redirect(SERVER_URI + '/register/error');
+        res.redirect(FRONTEND_URI + '/register/error');
     }
 }
 
@@ -100,10 +100,10 @@ export const googleOAuthRedirectLogin = async (req, res, next) => {
         const { code } = req.query;
 
         //redirect to frontend page with qureystring code
-        res.redirect(SERVER_URI + '/login/redirect?code=' + code + '&social_type=GOOGLE');
+        res.redirect(FRONTEND_URI + '/login/redirect?code=' + code + '&social_type=GOOGLE');
     }
     catch(error) {
-        res.redirect(SERVER_URI + '/login/error');
+        res.redirect(FRONTEND_URI + '/login/error');
     }
 }
 
