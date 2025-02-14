@@ -132,7 +132,14 @@ class MyPage extends Model {
             const storage = {
                 artworks: await Artwork.findAll({
                     where: { author_id: user_id },
-                    attributes: ['id', 'title', 'thumbnail_image_url', 'height', 'width']
+                    attributes: ['id', 'title', 'thumbnail_image_url', 'height', 'width'],
+                    include: [
+                        {
+                            model: Author,
+                            as: 'author',
+                            attributes: ['author_name'] // 작가 이름 추가
+                        }
+                    ]
                 }),
                 exhibitions: await Exhibition.findAll({
                     where: { author_id: user_id },
