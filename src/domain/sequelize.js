@@ -62,9 +62,9 @@ const connectSequelize = async () => {
     await sequelize.authenticate();
     console.log('Database connected successfully');
 
-    //await removeDuplicateIndexes();
+    // await removeDuplicateIndexes();
 
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: false });
     console.log('All models synchronized successfully');
   } catch (error) {
     console.error('Error connecting to the database:', error);
