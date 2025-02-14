@@ -26,6 +26,7 @@ export const getArtworkDetails = async (req, res) => {
     // 작품 정보 조회
     const artworkPromise = Artwork.findOne({
       where: { id: artworkId },
+      attributes: { exclude: ["updated_at"] },
       include: [
         { model: Author, as: 'author', attributes: ['id', 'author_name', 'author_image_url', 'work_style'] },
       ],
