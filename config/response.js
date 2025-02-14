@@ -14,7 +14,7 @@ export const sendResponse = (res, statusObject, result = null) => {
       isSuccess: statusObject.isSuccess,
       code: statusObject.code,
       message: statusObject.message,
-      result: result ? convertDatesInResult(result) : null,
+      result: result 
     });
   };
 

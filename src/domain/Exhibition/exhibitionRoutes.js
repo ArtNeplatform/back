@@ -2,75 +2,209 @@ import express from 'express';
 import Exhibition from './ExhibitionModel.js'; // Exhibition 모델 불러오기
 import Artwork from '../Artwork/Artwork.js';  // 작가의 작품 리스트 가져오기
 import uploadMiddleware from '../../../config/uploadMiddleware.js';
+import s3 from '../../../config/aws.js';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import { response } from '../../../config/response.js';
+import { status } from '../../../config/response.status.js';
+import { BaseError } from '../../../config/error.js';
+import { verifyToken } from '../../../middlewares/authMiddleware.js';
+import { sendResponse } from '../../../config/response.js';
 
 const router = express.Router();
 
+// S3 업로드 함수
+const uploadImageToS3 = async (image) => {
+  const fileName = `exhibitions/${uuidv4()}${path.extname(image.originalname)}`;
+  const params = {
+    Bucket: process.env.AWS_BUCKET_NAME,
+    Key: fileName,
+    Body: image.buffer,
+    ContentType: image.mimetype
+  };
+
+  const uploadResult = await s3.upload(params).promise();
+  if (!uploadResult || !uploadResult.Location) {
+    throw new BaseError({
+      message: 'Failed to upload image to S3.',
+      code: 'UPLOAD_FAILED',
+    });
+  }
+
+  return uploadResult.Location;
+};
+
 // 전시 리스트 조회 API
-router.get('/api/exhibitions', async (req, res) => {
+router.get('/exhibitions', async (req, res) => {
   try {
-    const sortBy = req.query.sortBy || 'name';
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6;
+    const sort = req.query.sort || 'title';  
+    const result = await Exhibition.getExhibitions(sort);
 
-    const validSortOptions = ['name', 'latest', 'popular'];
-    if (!validSortOptions.includes(sortBy)) {
-      return res.status(400).json({
-        success: false,
-        message: `잘못된 정렬 기준입니다. (지원됨: ${validSortOptions.join(', ')})`,
-      });
+    if (!result || result.length === 0) {
+      return sendResponse(res, status.NOT_FOUND);
     }
 
-    const { totalItems, totalPages, result } = await Exhibition.getExhibitions(sortBy, page, limit);
-
-    if (result.length === 0) {
-      return res.status(404).json({ success: false, message: '전시 데이터를 찾을 수 없습니다.' });
-    }
-
-    res.status(200).json({ success: true, totalItems, totalPages, currentPage: page, result });
+    return sendResponse(res, status.SUCCESS, result);
+    
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: '서버 오류입니다.' });
+    console.error('전시 조회 에러:', error);
+    return sendResponse(res, status.INTERNAL_SERVER_ERROR);
   }
 });
 
-// 전시 등록 API
-router.post('/api/exhibitions', async (req, res) => {
-  try {
-    const { author_id, title, image_url, start_date, end_date } = req.body;
 
-    // 필수 필드 검증증
-    if (!author_id || !title || !image_url) {
-      return res.status(400).json({
-        success: false,
-        message: "author_id, title, image_url 필드는 필수입니다.",
-      });
+
+// 전시 등록 API
+router.post('/exhibitions', verifyToken, uploadMiddleware, async (req, res) => {
+  try {
+    const { title, start_date, end_date } = req.body;
+    const author_id = req.user.id; // 토큰에서 가져온 사용자 ID
+
+    // 업로드된 파일 가져오기
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json(response(status.UPLOAD_NO_FILE, "전시 이미지는 필수입니다."));
     }
-    
+
+    // S3에 이미지 업로드
+    const image_url = await uploadImageToS3(req.files[0]); // 첫 번째 파일만 업로드
+
+    // 필수 필드 검증
+    if (!title || !image_url) {
+      return res.status(400).json(response(status.BAD_REQUEST, "title, image_url 필드는 필수입니다."));
+    }
+
     // 전시 등록
     const exhibition = await Exhibition.createExhibition({ 
       author_id, 
       title, 
-      artworks, 
-      image_url,  // 최종 전시 이미지
-      start_date, // 전시 시작일
-      end_date  // 전시 마감일
+      image_url, 
+      start_date, 
+      end_date  
     });
 
-    res.status(201).json({ success: true,  message: "전시가 성공적으로 등록되었습니다.", result: exhibition });
+    res.status(201).json({ 
+      isSuccess: true,
+      code: 201,
+      message: "전시가 성공적으로 등록되었습니다.",
+      result: exhibition,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "서버 오류입니다." });
+    res.status(500).json({ 
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null,
+    });
+  }
+});
+
+// 전시 상세 조회 API
+router.get('/exhibitions/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id; // 토큰에서 가져온 사용자 ID
+
+    // 전시 정보 조회 (작품 및 작가 포함)
+    const exhibition = await Exhibition.findByPk(id, {
+      include: [
+        {
+          model: Artwork,
+          as: 'artworks',
+          attributes: ['id', 'title', 'thumbnail_image_url']
+        },
+        {
+          model: Author,
+          as: 'author',
+          attributes: ['id', 'name', 'profile_image_url']
+        }
+      ]
+    });
+
+    // 전시가 없을 경우
+    if (!exhibition) {
+      return res.status(404).json({
+        isSuccess: false,
+        code: 404,
+        message: "전시를 찾을 수 없습니다.",
+        result: null
+      });
+    }
+
+    // 해당 작가의 다른 전시 정보 조회 (현재 전시 제외)
+    const otherGalleries = await Exhibition.findAll({
+      where: { author_id: exhibition.author.id, id: { [Op.ne]: id } }, // 현재 전시 제외
+      attributes: ['id', 'title', 'image_url'],
+      limit: 3 // 최대 3개만 가져오기
+    });
+
+    // 응답 데이터 구성
+    const formattedExhibition = {
+      id: exhibition.id,
+      title: exhibition.title,
+      image_url: exhibition.image_url,
+      start_date: exhibition.start_date,
+      end_date: exhibition.end_date,
+      created_at: exhibition.created_at,
+      popularity: exhibition.popularity,
+      author: {
+        id: exhibition.author.id,
+        author_name: exhibition.author.name,
+        author_image_url: exhibition.author.profile_image_url,
+        otherGalleries: otherGalleries.map(gallery => ({
+          id: gallery.id,
+          title: gallery.title,
+          image_url: gallery.image_url
+        })),
+        artworks: exhibition.artworks.map(artwork => ({
+          id: artwork.id,
+          title: artwork.title,
+          image_url: artwork.thumbnail_image_url
+        }))
+      }
+    };
+
+    res.status(200).json({
+      isSuccess: true,
+      code: 200,
+      message: "전시 상세 조회 성공",
+      result: formattedExhibition
+    });
+
+  } catch (error) {
+    console.error("Error fetching exhibition details:", error);
+    res.status(500).json({
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null
+    });
   }
 });
 
 // 전시 수정 API
-router.put('/api/exhibitions/:id', uploadMiddleware, async (req, res) => {
+router.put('/exhibitions/:id', verifyToken, uploadMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, artworks, start_date, end_date } = req.body;
+    const { title, start_date, end_date } = req.body;
+    const author_id = req.user.id; // 토큰에서 가져온 사용자 ID
 
-    // S3에 새로 업로드된 대표 이미지 URL 가져오기
-    const image_url = req.files?.[0]?.location || null;
+    // 기존 전시 정보 확인
+    const exhibition = await Exhibition.findByPk(id);
+    if (!exhibition) {
+      return res.status(404).json(response(status.NOT_FOUND, "전시를 찾을 수 없습니다."));
+    }
+
+    // 사용자가 전시의 소유자인지 확인
+    if (exhibition.author_id !== author_id) {
+      return res.status(403).json(response(status.FORBIDDEN, "권한이 없습니다."));
+    }
+
+    // 업로드된 새 이미지 URL 가져오기 (있다면 업데이트, 없으면 기존 값 유지)
+    let image_url = exhibition.image_url; // 기본값은 기존 이미지 URL 유지
+    if (req.files && req.files.length > 0) {
+      image_url = await uploadImageToS3(req.files[0]); // 새 이미지 업로드
+    }
 
     const updatedExhibition = await Exhibition.updateExhibition(id, { 
       title, 
@@ -79,33 +213,61 @@ router.put('/api/exhibitions/:id', uploadMiddleware, async (req, res) => {
       end_date  // 전시 마감일
     });
 
-    if (!updatedExhibition) {
-      return res.status(404).json({ success: false, message: "전시를 찾을 수 없습니다." });
-    }
-
-    res.status(200).json({ success: true, result: updatedExhibition });
+    res.status(200).json({ 
+      isSuccess: true,
+      code: 200,
+      message: "전시가 성공적으로 수정되었습니다.",
+      result: updatedExhibition,
+     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "서버 오류입니다." });
+    res.status(500).json({ 
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null,
+     });
   }
 });
 
 // 전시 삭제 API
-router.delete('/api/exhibitions/:id', async (req, res) => {
+router.delete('/exhibitions/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
+    const author_id = req.user.id; // 토큰에서 가져온 사용자 ID
+
+    // 기존 전시 정보 확인
+    const exhibition = await Exhibition.findByPk(id);
+    if (!exhibition) {
+      return res.status(404).json(response(status.NOT_FOUND, "전시를 찾을 수 없습니다."));
+    }
+
+    // 사용자가 전시의 소유자인지 확인
+    if (exhibition.author_id !== author_id) {
+      return res.status(403).json(response(status.FORBIDDEN, "권한이 없습니다."));
+    }
 
     await Exhibition.deleteExhibition(id);
 
-    res.status(200).json({ success: true, message: "전시가 삭제되었습니다." });
+    res.status(200).json({ 
+      isSuccess: true,
+      code: 200,
+      message: "전시가 삭제되었습니다.",
+      result: null,
+     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "서버 오류입니다." });
+    res.status(500).json({ 
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null,
+     });
   }
 });
 
 // 전시 배경 선택 API
-router.get('/api/exhibitions/backgrounds', async (req, res) => {
+router.get('/exhibitions/backgrounds', async (req, res) => {
   try {
     const backgrounds = [
       { id: 1, name: "갤러리 1", background_url: "https://artne-image.s3.ap-northeast-2.amazonaws.com/Rectangle+143.png" },
@@ -114,41 +276,42 @@ router.get('/api/exhibitions/backgrounds', async (req, res) => {
     ]; 
 
     res.status(200).json({
-      success: true,
+      isSuccess: true,
+      code: 200,
       message: "전시 배경 목록 조회 성공",
-      result: backgrounds
+      result: backgrounds,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "서버 오류입니다." });
+    res.status(500).json({ 
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null,
+     });
   }
 });
 
 // 전시 등록 시 사용하는 작품 조회 API
-router.get('/api/exhibitions/artworks', async (req, res) => {
+router.get('/exhibitions/artworks', verifyToken, async (req, res) => {
   try {
-    const { author_id } = req.query;
-
-    if (!author_id) {
-      return res.status(400).json({
-        success: false,
-        message: "author_id는 필수입니다."
-      });
-    }
+    const author_id = req.user.id; // 토큰에서 사용자 ID 가져오기
 
     // 해당 작가의 작품 리스트 가져오기
     const artworks = await Artwork.findArtworksByAuthor(author_id);
 
     if (!artworks || artworks.length === 0) {
       return res.status(404).json({
-        success: false,
-        message: "해당 작가의 작품을 찾을 수 없습니다."
+        isSuccess: false,
+        code: 404,
+        message: "해당 작가의 작품을 찾을 수 없습니다.",
+        result: null,
       });
     }
 
     // 응답 데이터에서 `thumbnail_image_url`을 `artworks` 배열로 변환
     const formattedArtworks = {
-      author_id: parseInt(author_id), // 작가 ID 포함
+      author_id, // 작가 ID 포함
       artworks: artworks.map(artwork => ({
         id: artwork.id,
         title: artwork.title,
@@ -157,13 +320,19 @@ router.get('/api/exhibitions/artworks', async (req, res) => {
     };
 
     res.status(200).json({
-      success: true,
+      isSuccess: true,
+      code: 200,
       message: "작품 목록 조회 성공",
-      result: formattedArtworks
+      result: formattedArtworks,
     });
   } catch (error) {
     console.error("Error fetching artworks:", error);
-    res.status(500).json({ success: false, message: "서버 오류입니다." });
+    res.status(500).json({ 
+      isSuccess: false,
+      code: 500,
+      message: "서버 오류입니다.",
+      result: null,
+     });
   }
 });
 
