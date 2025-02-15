@@ -24,12 +24,13 @@ class MyPage extends Model {
             const paymentCounts = await Payment.findAll({
                 where: { user_id: user_id },
                 attributes: [
-                    [sequelize.fn('SUM', sequelize.literal("payment_status = '결제 대기중'")), 'pending'],
-                    [sequelize.fn('SUM', sequelize.literal("payment_status = '결제 완료'")), 'completed'],
-                    [sequelize.fn('SUM', sequelize.literal("payment_status = '수령 완료'")), 'received'],
+                    [sequelize.fn('COUNT', sequelize.literal("CASE WHEN payment_status = 'PENDING' THEN 1 END")), 'pending'],
+                    [sequelize.fn('COUNT', sequelize.literal("CASE WHEN payment_status = 'COMPLETED' OR payment_status = 'BID' THEN 1 END")), 'completed'], // BID 포함
+                    [sequelize.fn('COUNT', sequelize.literal("CASE WHEN payment_status = 'RECEIVED' THEN 1 END")), 'received'],
                 ],
                 raw: true,
             });
+            
 
             // 경매 입찰 내역 (최대 3개)
             const auctions = await AuctionBid.findAll({
