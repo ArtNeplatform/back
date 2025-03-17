@@ -45,13 +45,30 @@
 ### 🏛️ 4. 전시
 - 진행 중인 전시 정보 확인
 
+<br>
+
+![전시](https://github.com/user-attachments/assets/a95c6701-6d4e-42ea-87ba-cb35816ab3ec)
+
+<br>
+
 ### 👩‍🎨 5. 작가 정보
 - 작가별 상세 정보 및 진행 중인 전시, 경매 확인 가능
 
-### 🔍 마이페이지
+<br>
 
+![작가](https://github.com/user-attachments/assets/c12bb4d3-1e1b-4c1a-b091-fe1d6e69586a)
+
+<br>
+
+### 🔍 마이페이지
 - 내 작품 등록 및 관리 
 - 내가 찜한 작품 및 경매 현황 확인
 - 카카오페이 결제
+
+<br>
+
+![마이페이지](https://github.com/user-attachments/assets/b180aff5-4732-491c-a561-0c9a1e8c98d7)
+
+<br>
 
 
